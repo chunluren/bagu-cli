@@ -1,0 +1,56 @@
+# Build
+build/
+build-*/
+out/
+cmake-build-*/
+
+# IDE
+.vscode/
+.idea/
+.cache/
+*.swp
+*.swo
+.DS_Store
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.exe
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/
+
+# Local data (本地运行产物)
+~/.bagu/
+*.db
+*.db-journal
+*.log
+logs/
+
+# Third party 自动下载的不入仓
+third_party/_deps/
+third_party/build/
+
+# Editor backups
+*~
+*.bak
+
+# Local secrets
+.env
+.env.local
+secrets.toml
