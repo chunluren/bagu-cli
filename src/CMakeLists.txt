@@ -1,6 +1,9 @@
 # 主可执行文件
 add_executable(bagu
     main.cpp
+    cli/init_cmd.cpp
+    cli/config_cmd.cpp
+    util/path.cpp
 )
 
 target_include_directories(bagu
