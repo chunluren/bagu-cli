@@ -15,9 +15,18 @@ target_link_libraries(bagu
         spdlog::spdlog
         nlohmann_json::nlohmann_json
         tomlplusplus::tomlplusplus
-        SQLite::SQLite3
-        CURL::libcurl
 )
+
+# 可选依赖
+if(SQLite3_FOUND)
+    target_link_libraries(bagu PRIVATE SQLite::SQLite3)
+    target_compile_definitions(bagu PRIVATE BAGU_HAVE_SQLITE3)
+endif()
+
+if(CURL_FOUND)
+    target_link_libraries(bagu PRIVATE CURL::libcurl)
+    target_compile_definitions(bagu PRIVATE BAGU_HAVE_CURL)
+endif()
 
 # 后续模块加上：
 # add_subdirectory(cli)

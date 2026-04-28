@@ -66,12 +66,22 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(CLI11 spdlog nlohmann_json tomlplusplus)
 
-# ===== 可选依赖（后续阶段加）=====
+# ===== 可选依赖（后续阶段需要时启用）=====
 # SQLite3
-find_package(SQLite3 REQUIRED)
+find_package(SQLite3 QUIET)
+if(SQLite3_FOUND)
+    message(STATUS "SQLite3 found: ${SQLite3_VERSION}")
+else()
+    message(WARNING "SQLite3 not found, db module will be disabled")
+endif()
 
 # libcurl（用于 LLM API）
-find_package(CURL REQUIRED)
+find_package(CURL QUIET)
+if(CURL_FOUND)
+    message(STATUS "libcurl found: ${CURL_VERSION_STRING}")
+else()
+    message(WARNING "libcurl not found, llm module will be disabled")
+endif()
 
 # ===== 第三方延后接入（避免一开始全拉，节省时间）=====
 # 后续要加：
