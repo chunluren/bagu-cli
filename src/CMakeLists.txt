@@ -19,6 +19,7 @@ if(SQLite3_FOUND)
         cli/import_cmd.cpp
         cli/list_cmd.cpp
         cli/show_cmd.cpp
+        cli/search_cmd.cpp
     )
 endif()
 

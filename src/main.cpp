@@ -11,6 +11,7 @@
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
 #include "cli/list_cmd.h"
+#include "cli/search_cmd.h"
 #include "cli/show_cmd.h"
 
 int main(int argc, char** argv) {
@@ -46,7 +47,12 @@ int main(int argc, char** argv) {
     // ===== bagu search =====
     auto* cmd_search = app.add_subcommand("search", "全文搜索");
     std::string search_keyword;
+    std::string search_topic;
+    int search_limit = 20;
     cmd_search->add_option("keyword", search_keyword, "搜索关键词")->required();
+    cmd_search->add_option("--topic", search_topic, "限定主题");
+    cmd_search->add_option("-n,--limit", search_limit, "返回上限")
+        ->capture_default_str();
 
     // ===== bagu review =====
     auto* cmd_review = app.add_subcommand("review", "进入交互式复习模式");
@@ -115,8 +121,7 @@ int main(int argc, char** argv) {
         return bagu::cli::run_show(show_id);
     }
     if (cmd_search->parsed()) {
-        std::cout << "bagu search '" << search_keyword << "': not implemented yet (M2)\n";
-        return 0;
+        return bagu::cli::run_search(search_keyword, search_topic, search_limit);
     }
     if (cmd_review->parsed()) {
         std::cout << "bagu review: not implemented yet (M3)\n";
