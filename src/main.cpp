@@ -10,6 +10,7 @@
 #include "cli/config_cmd.h"
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
+#include "cli/interview_cmd.h"
 #include "cli/list_cmd.h"
 #include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
@@ -68,10 +69,13 @@ int main(int argc, char** argv) {
 
     // ===== bagu interview =====
     auto* cmd_interview = app.add_subcommand("interview", "AI 模拟面试");
-    std::string itv_topic;
+    std::string itv_topic, itv_provider, itv_model;
     int itv_num = 5;
     cmd_interview->add_option("--topic", itv_topic, "主题")->required();
     cmd_interview->add_option("-n,--num", itv_num, "题数")->capture_default_str();
+    cmd_interview->add_option("--provider", itv_provider,
+        "覆盖配置：openai / claude / ollama");
+    cmd_interview->add_option("--model", itv_model, "覆盖配置：模型名");
 
     // ===== bagu stats =====
     auto* cmd_stats = app.add_subcommand("stats", "统计信息");
@@ -137,8 +141,12 @@ int main(int argc, char** argv) {
         return bagu::cli::run_review(ropts);
     }
     if (cmd_interview->parsed()) {
-        std::cout << "bagu interview: not implemented yet (M4)\n";
-        return 0;
+        bagu::cli::InterviewCliOptions iopts;
+        iopts.topic = itv_topic;
+        iopts.num = itv_num;
+        iopts.provider = itv_provider;
+        iopts.model = itv_model;
+        return bagu::cli::run_interview(iopts);
     }
     if (cmd_stats->parsed()) {
         std::cout << "bagu stats: not implemented yet (M4)\n";

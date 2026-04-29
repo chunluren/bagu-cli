@@ -15,11 +15,12 @@ TEST(Migrations, RegisterAndApply_AllTablesCreated) {
     auto m = db.migrate();
     ASSERT_TRUE(m.is_ok()) << m.error().message << " | " << m.error().detail;
 
-    EXPECT_EQ(db.schema_version(), 2);
+    EXPECT_EQ(db.schema_version(), 3);
 
     // 验证关键表存在
     for (const auto& table : {"topic", "chapter", "card", "review",
-                              "review_history", "card_fts", "schema_version"}) {
+                              "review_history", "card_fts", "schema_version",
+                              "interview_session", "interview_qa"}) {
         auto stmt = db.prepare(
             "SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name = ?");
         ASSERT_TRUE(stmt);

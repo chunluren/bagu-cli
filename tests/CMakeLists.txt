@@ -13,8 +13,15 @@ if(SQLite3_FOUND)
         unit/db/migrations_test.cpp
         unit/db/topic_dao_test.cpp
         unit/db/card_dao_test.cpp
+        unit/db/interview_dao_test.cpp
         unit/service/review_service_test.cpp
         unit/service/import_service_test.cpp
+    )
+endif()
+
+if(SQLite3_FOUND AND CURL_FOUND)
+    target_sources(bagu_tests PRIVATE
+        unit/service/interview_service_test.cpp
     )
 endif()
 

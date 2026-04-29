@@ -13,6 +13,7 @@ if(CURL_FOUND)
         util/http.cpp
         llm/openai_client.cpp
         llm/factory.cpp
+        llm/prompts.cpp
     )
 endif()
 
@@ -25,6 +26,7 @@ if(SQLite3_FOUND)
         db/chapter_dao.cpp
         db/card_dao.cpp
         db/review_dao.cpp
+        db/interview_dao.cpp
         service/import_service.cpp
         service/review_service.cpp
         tui/review_screen.cpp
@@ -33,6 +35,13 @@ if(SQLite3_FOUND)
         cli/show_cmd.cpp
         cli/search_cmd.cpp
         cli/review_cmd.cpp
+    )
+endif()
+
+if(SQLite3_FOUND AND CURL_FOUND)
+    list(APPEND BAGU_LIB_SOURCES
+        service/interview_service.cpp
+        cli/interview_cmd.cpp
     )
 endif()
 

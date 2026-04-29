@@ -105,6 +105,35 @@ CREATE TRIGGER card_fts_update AFTER UPDATE ON card BEGIN
 END;
 )SQL";
 
+// ============================================================================
+// 0003 — interview 会话表
+// ============================================================================
+constexpr const char* kMigration0003 = R"SQL(
+CREATE TABLE interview_session (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    topic           TEXT NOT NULL,
+    started_at      INTEGER NOT NULL,
+    ended_at        INTEGER,
+    total_score     REAL,
+    question_count  INTEGER DEFAULT 0,
+    llm_provider    TEXT,
+    llm_model       TEXT
+);
+
+CREATE TABLE interview_qa (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      INTEGER NOT NULL,
+    question_no     INTEGER NOT NULL,
+    question        TEXT NOT NULL,
+    user_answer     TEXT,
+    ai_score        INTEGER,
+    ai_feedback     TEXT,
+    duration_ms     INTEGER,
+    FOREIGN KEY (session_id) REFERENCES interview_session(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_qa_session ON interview_qa(session_id);
+)SQL";
+
 }  // namespace
 
 void register_all_migrations(Database& db) {
@@ -112,6 +141,8 @@ void register_all_migrations(Database& db) {
         kMigration0001);
     db.register_migration(2, "card_fts virtual table + sync triggers",
         kMigration0002);
+    db.register_migration(3, "interview_session + interview_qa",
+        kMigration0003);
 }
 
 }  // namespace bagu::db
