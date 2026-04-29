@@ -2,11 +2,11 @@
 
 > 八股文档智能学习助手 — 用 C++ 写的命令行工具，帮你高效复习面试八股
 
-[![CI](https://img.shields.io/badge/CI-pending-yellow.svg)](#)
+[![CI](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![Tests](https://img.shields.io/badge/tests-90%20passed-brightgreen.svg)](#)
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-115%20passed-brightgreen.svg)](#)
+[![Version](https://img.shields.io/badge/version-v0.2.0-blue.svg)](https://github.com/chunluren/bagu-cli/releases/tag/v0.2.0)
 
 ---
 
@@ -18,6 +18,8 @@
 - **全文搜索** — SQLite FTS5 倒排索引，毫秒级查询，关键词高亮
 - **智能复习** — 基于艾宾浩斯遗忘曲线（**SM-2** 算法）推送复习题
 - **TUI 交互** — FTXUI 全屏复习界面，按键评分（0-5）
+- **AI 模拟面试** — 调用 OpenAI / Claude / Ollama 出题 + 评分（流式 SSE）
+- **学习统计** — 连续打卡 / 各主题进度 / 薄弱排行 / Unicode 热力图
 - **本地优先** — 数据全部本地 SQLite，不上传
 
 ---
@@ -106,6 +108,53 @@ $ bagu review --topic mysql -n 10
   │                                                            │
   ╰──────────────────────────────────────────────────────────╯
    [SPACE] 显示答案  [s] 跳过  [q] 退出
+
+# 8. AI 模拟面试（流式输出，OpenAI/Claude/Ollama）
+$ export OPENAI_API_KEY=sk-...
+$ bagu interview --topic mysql -n 3
+
+========== AI 模拟面试 ==========
+主题: mysql · 题数: 3 · 提供商: openai · 模型: gpt-4o-mini
+
+─── 第 1/3 题 ───
+
+[面试官] 请简要说明 MVCC 是如何实现非阻塞读的？
+                  涉及哪些数据结构？
+[你] (多行答案，单独一行 . 或 Ctrl+D 结束；q 退出会话)
+> MVCC 通过隐藏字段和 undo log 版本链...
+> .
+
+[评分] 评分：8/10
+       ✓ 答对：隐藏字段、undo 版本链、Read View 三要素
+       ✗ 缺漏：未说明 RC 与 RR 下 Read View 生成时机的差异
+       💡 建议：补充快照读 vs 当前读对比
+
+# 9. 学习统计（含 unicode 热力图）
+$ bagu stats --heatmap
+
+========== 总览 ==========
+  连续打卡:   7 天
+  累计复习:   42 次
+  整体正确率: 76.2%
+  已学卡片:   28 / 395
+
+========== 各主题进度 ==========
+  TOPIC                LEARNED  ACCURACY    DUE
+  ------------------------------------------------
+  mysql                  18/86      78%      6
+  redis                   8/144     62%      2
+  cpp-network             2/165     50%      -
+
+========== 最薄弱（最近答错最多）==========
+  1. [mysql]  MVCC 原理（核心）        答错 3/4 次
+  2. [redis]  Set 和 ZSet 区别？        答错 2/3 次
+
+========== 热力图 (最近 90 天) ==========
+  Mon   ··▁▃▅▇▇▅▃▁······▁▃▅▇▇▇█▇▅▃▁
+  Tue   ▁▃▅▇▅▃▁······▁▃▇█▇▅▃▁······
+  Wed   ····▁▃▅▇▅▃▁······▁▃▅▇▇▅▃▁··
+  ...
+  Less ·▁ ▃▅ ▇█ More
 ```
 
 按 SPACE 看答案 → 1-5 评分 → 自动下一题 → 退出后看复习总结。
@@ -165,6 +214,8 @@ sudo cmake --install . --prefix /usr/local
 | `bagu show <id>` | 查看单张卡片完整内容 |
 | `bagu search <keyword> [--topic T] [-n N]` | FTS5 全文搜索 |
 | `bagu review [--topic T] [-n N] [--new-only] [--all]` | 进入复习 TUI |
+| `bagu interview --topic T [-n N] [--provider P] [--model M]` | AI 模拟面试 |
+| `bagu stats [--heatmap] [--days N]` | 学习统计 + 热力图 |
 | `bagu config get <key>` / `set <key> <value>` / `list` | 配置管理 |
 | `bagu --version` / `--help` | 版本与帮助 |
 
@@ -235,7 +286,7 @@ sudo cmake --install . --prefix /usr/local
 | 加密 | OpenSSL | SHA256 文件指纹 |
 | 日志 | spdlog | 结构化日志 |
 | JSON | nlohmann/json | （未来 LLM）|
-| 测试 | GoogleTest | **90 个单测，100% 通过** |
+| 测试 | GoogleTest | **115 个单测，100% 通过** |
 
 ---
 
@@ -252,10 +303,10 @@ sudo cmake --install . --prefix /usr/local
 
 ## 路线图
 
-- ✅ **v0.1.0**（2026-04，当前）— MVP：init/import/list/search/show/review + SM-2 + FTXUI
-- ⏳ **v0.2.0** — `bagu interview` AI 模拟面试（OpenAI / Claude / Ollama）
-- ⏳ **v0.2.0** — `bagu stats` 学习统计 + 热力图
-- ⏳ **v1.0.0** — 完整测试、CI、Homebrew formula、公开发布
+- ✅ **v0.1.0**（2026-04） — MVP：init/import/list/search/show/review + SM-2 + FTXUI
+- ✅ **v0.2.0**（2026-04，当前）— `bagu interview` AI 模拟面试 + `bagu stats` 学习统计 + 热力图
+- ⏳ **v0.3.0** — 性能优化、覆盖率 ≥ 85%、e2e 测试套件
+- ⏳ **v1.0.0** — 完整 CI matrix、Homebrew formula、Debian package
 
 详见 [Roadmap](./docs/planning/roadmap.md)。
 

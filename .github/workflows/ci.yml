@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test (${{ matrix.os }} / ${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        compiler: [gcc, clang]
+        include:
+          - os: macos-13
+            compiler: clang
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            libsqlite3-dev libcurl4-openssl-dev libssl-dev
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake ninja sqlite curl openssl
+
+      - name: Set compiler (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+            echo "CC=clang" >> "$GITHUB_ENV"
+            echo "CXX=clang++" >> "$GITHUB_ENV"
+          else
+            echo "CC=gcc" >> "$GITHUB_ENV"
+            echo "CXX=g++" >> "$GITHUB_ENV"
+          fi
+
+      - name: Cache FetchContent deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/_deps
+          key: deps-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            deps-${{ matrix.os }}-${{ matrix.compiler }}-
+
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBAGU_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure --label-regex unit
+
+      - name: Smoke test (CLI)
+        run: |
+          ./build/src/bagu --version
+          ./build/src/bagu --help
+
+  lint:
+    name: clang-format check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+      - name: Check format
+        run: |
+          # 暂不强制（项目还在迭代）；仅记录
+          find src tests -name '*.cpp' -o -name '*.h' \
+            | xargs clang-format --dry-run 2>&1 | tee /tmp/format.log || true
+          echo "::notice::clang-format diagnostics logged but not enforced (will enable in v1.0)"

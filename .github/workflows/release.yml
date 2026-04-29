@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-x86_64
+          - os: macos-13
+            target: macos-x86_64
+          - os: macos-14
+            target: macos-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build \
+            libsqlite3-dev libcurl4-openssl-dev libssl-dev
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake ninja sqlite curl openssl
+
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBAGU_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp build/src/bagu dist/
+          cp README.md LICENSE CHANGELOG.md dist/
+          cd dist
+          tar -czf "bagu-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz" *
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bagu-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-22.04
+    needs: build-release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Update existing GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.tar.gz
+          # 不覆盖已有 release notes（手工编辑过）
+          fail_on_unmatched_files: true
