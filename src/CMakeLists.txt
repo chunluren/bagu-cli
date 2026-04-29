@@ -8,6 +8,14 @@ set(BAGU_LIB_SOURCES
     core/sm2.cpp
 )
 
+if(CURL_FOUND)
+    list(APPEND BAGU_LIB_SOURCES
+        util/http.cpp
+        llm/openai_client.cpp
+        llm/factory.cpp
+    )
+endif()
+
 if(SQLite3_FOUND)
     list(APPEND BAGU_LIB_SOURCES
         db/database.cpp

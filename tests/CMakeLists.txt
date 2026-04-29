@@ -3,6 +3,7 @@ add_executable(bagu_tests
     unit/result_test.cpp
     unit/parser/markdown_parser_test.cpp
     unit/core/sm2_test.cpp
+    unit/llm/mock_client_test.cpp
 )
 
 if(SQLite3_FOUND)

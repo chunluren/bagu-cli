@@ -33,6 +33,15 @@ enum class E : int {
     kCardNotFound = 4020,
     kTopicNotFound = 4021,
 
+    // 网络 / LLM
+    kNetworkError = 5000,
+    kHttpTimeout = 5001,
+    kHttpStatusError = 5002,
+    kLlmAuthFailed = 5010,
+    kLlmRateLimited = 5011,
+    kLlmInvalidResponse = 5012,
+    kLlmProviderUnknown = 5013,
+
     // 文件系统
     kFileNotFound = 7000,
     kFileReadFailed = 7001,
