@@ -83,11 +83,17 @@ else()
     message(WARNING "libcurl not found, llm module will be disabled")
 endif()
 
-# ===== 第三方延后接入（避免一开始全拉，节省时间）=====
-# 后续要加：
-#   - FTXUI（TUI）
-#   - cmark / md4c（markdown 解析）
-#   - GoogleTest（测试）
+# ===== GoogleTest（仅在测试构建时拉取）=====
+if(BAGU_BUILD_TESTS)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.14.0
+        GIT_SHALLOW TRUE
+    )
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+endif()
 
 # ===== 源代码 =====
 add_subdirectory(src)
@@ -95,7 +101,7 @@ add_subdirectory(src)
 # ===== 测试 =====
 if(BAGU_BUILD_TESTS)
     enable_testing()
-    # add_subdirectory(tests)   # 等模块写完再启用
+    add_subdirectory(tests)
 endif()
 
 # ===== 安装 =====

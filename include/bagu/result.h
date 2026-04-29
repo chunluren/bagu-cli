@@ -56,7 +56,8 @@ private:
 template <>
 class [[nodiscard]] Result<void> {
 public:
-    Result() : err_() {}
+    /// 默认构造表示成功（code=0）
+    Result() { err_.code = 0; }
     Result(Error err) : err_(std::move(err)) {}
 
     bool is_ok() const noexcept { return err_.code == 0; }
