@@ -133,7 +133,12 @@ int list_topic_detail(db::Database& db, const std::string& topic_name) {
             top.push_back(&c);
         }
     }
+    // 排序：正章号升序在前，负章号（无章号原始顺序）排到末尾
     std::sort(top.begin(), top.end(), [](auto a, auto b) {
+        bool a_neg = a->chapter_no < 0;
+        bool b_neg = b->chapter_no < 0;
+        if (a_neg != b_neg) return !a_neg;
+        if (a_neg) return a->chapter_no > b->chapter_no;  // 负数：-1, -2, -3 → 显示顺序
         return a->chapter_no < b->chapter_no;
     });
 
@@ -141,8 +146,12 @@ int list_topic_detail(db::Database& db, const std::string& topic_name) {
         bool last = (i + 1 == top.size());
         const db::Chapter* ch = top[i];
         int direct = chapter_card_count[ch->id];
-        std::cout << "  " << (last ? "└── " : "├── ")
-                  << "第 " << ch->chapter_no << " 章 " << ch->name;
+        std::cout << "  " << (last ? "└── " : "├── ");
+        if (ch->chapter_no > 0) {
+            std::cout << "第 " << ch->chapter_no << " 章 " << ch->name;
+        } else {
+            std::cout << ch->name;   // 无章号章节直接显示名字
+        }
         if (direct > 0) std::cout << "  (" << direct << " cards)";
         std::cout << "\n";
 
