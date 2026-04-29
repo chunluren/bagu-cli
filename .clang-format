@@ -1,0 +1,40 @@
+---
+# bagu-cli 代码格式（基于 Google 风格 + 项目调整）
+# 详见 docs/development/coding-standards.md
+BasedOnStyle: Google
+Language: Cpp
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+
+# 指针 / 引用靠类型
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# 大括号 K&R
+BreakBeforeBraces: Attach
+
+# 命名空间不缩进
+NamespaceIndentation: None
+FixNamespaceComments: true
+
+# 包含分组（与 coding-standards.md 一致：本文件 / 标准库 / 第三方 / 本项目）
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"'
+    Priority: 1                   # 本项目
+  - Regex: '<[a-z_]+\.h>'
+    Priority: 2                   # C 风格
+  - Regex: '<[a-z_]+>'
+    Priority: 2                   # 标准库
+  - Regex: '<.*>'
+    Priority: 3                   # 第三方
+
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+SortIncludes: CaseSensitive
+SpacesBeforeTrailingComments: 2
