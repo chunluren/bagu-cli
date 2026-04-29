@@ -15,6 +15,7 @@
 #include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
 #include "cli/show_cmd.h"
+#include "cli/stats_cmd.h"
 
 int main(int argc, char** argv) {
     CLI::App app{"bagu - 八股文档智能学习助手"};
@@ -79,8 +80,12 @@ int main(int argc, char** argv) {
 
     // ===== bagu stats =====
     auto* cmd_stats = app.add_subcommand("stats", "统计信息");
+    std::string stats_topic;
     bool stats_heatmap = false;
+    int stats_days = 90;
+    cmd_stats->add_option("--topic", stats_topic, "限定主题");
     cmd_stats->add_flag("--heatmap", stats_heatmap, "显示热力图");
+    cmd_stats->add_option("--days", stats_days, "热力图天数")->capture_default_str();
 
     // ===== bagu config =====
     auto* cmd_config = app.add_subcommand("config", "配置管理");
@@ -149,8 +154,11 @@ int main(int argc, char** argv) {
         return bagu::cli::run_interview(iopts);
     }
     if (cmd_stats->parsed()) {
-        std::cout << "bagu stats: not implemented yet (M4)\n";
-        return 0;
+        bagu::cli::StatsOptions sopts;
+        sopts.topic = stats_topic;
+        sopts.heatmap = stats_heatmap;
+        sopts.days = stats_days;
+        return bagu::cli::run_stats(sopts);
     }
 
     return 0;

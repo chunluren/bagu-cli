@@ -13,6 +13,40 @@
 
 ---
 
+## [0.2.0] - 2026-04-30
+
+### Added
+
+#### AI 模拟面试
+- `bagu interview --topic <T> [-n N] [--provider P] [--model M]`
+- LLM 抽象层（OpenAI / Claude / Ollama / OpenAI 兼容服务）
+- 流式 SSE 输出（题目和评分实时显示）
+- 配置加载：`~/.bagu/config.toml` + 环境变量 API key
+- 评分自动解析：支持 `评分：N/10` / `Score: N` / `分数：N` 等格式
+- 多行答案输入（`.` 或 `Ctrl+D` 结束，`q` 退出会话）
+- 会话历史完整保存到 `interview_session` + `interview_qa` 表
+- Schema migration v3：interview 相关表
+
+#### 学习统计
+- `bagu stats` — 总览（连续打卡、累计复习、整体正确率、各主题进度、薄弱卡片）
+- `bagu stats --heatmap [--days N]` — Unicode 块字符热力图（按周排版）
+- 总览：连续打卡天数、最近 30 天活跃日数、整体正确率
+- 各主题进度：已学/总数、正确率、今日到期数
+- 薄弱排行：最近答错最多的卡片（默认 top 5）
+
+#### 基础设施
+- libcurl HTTP 工具（同步 + 流式 SSE）
+- 错误码细分：网络 / HTTP / LLM 认证 / 限流 / 无效响应
+- LLM 工厂模式（按 provider 路由）
+
+### Tests
+- 26 个新增测试（共 115 个，100% 通过）
+- LLM Mock + Factory: 9 个
+- InterviewDao + InterviewService: 10 个
+- StatsService: 6 个
+
+---
+
 ## [0.1.0] - 2026-04-30
 
 **首个 MVP 版本** — 完整可用的本地八股文档复习工具。

@@ -29,12 +29,14 @@ if(SQLite3_FOUND)
         db/interview_dao.cpp
         service/import_service.cpp
         service/review_service.cpp
+        service/stats_service.cpp
         tui/review_screen.cpp
         cli/import_cmd.cpp
         cli/list_cmd.cpp
         cli/show_cmd.cpp
         cli/search_cmd.cpp
         cli/review_cmd.cpp
+        cli/stats_cmd.cpp
     )
 endif()
 

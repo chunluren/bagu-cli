@@ -16,6 +16,7 @@ if(SQLite3_FOUND)
         unit/db/interview_dao_test.cpp
         unit/service/review_service_test.cpp
         unit/service/import_service_test.cpp
+        unit/service/stats_service_test.cpp
     )
 endif()
 
