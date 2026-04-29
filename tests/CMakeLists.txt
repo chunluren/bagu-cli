@@ -2,6 +2,7 @@ add_executable(bagu_tests
     unit/util/path_test.cpp
     unit/result_test.cpp
     unit/parser/markdown_parser_test.cpp
+    unit/core/sm2_test.cpp
 )
 
 if(SQLite3_FOUND)
@@ -11,6 +12,7 @@ if(SQLite3_FOUND)
         unit/db/migrations_test.cpp
         unit/db/topic_dao_test.cpp
         unit/db/card_dao_test.cpp
+        unit/service/review_service_test.cpp
     )
 endif()
 

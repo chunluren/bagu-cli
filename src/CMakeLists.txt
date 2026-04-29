@@ -5,6 +5,7 @@ set(BAGU_LIB_SOURCES
     cli/init_cmd.cpp
     cli/config_cmd.cpp
     parser/markdown_parser.cpp
+    core/sm2.cpp
 )
 
 if(SQLite3_FOUND)
@@ -15,7 +16,9 @@ if(SQLite3_FOUND)
         db/topic_dao.cpp
         db/chapter_dao.cpp
         db/card_dao.cpp
+        db/review_dao.cpp
         service/import_service.cpp
+        service/review_service.cpp
         cli/import_cmd.cpp
         cli/list_cmd.cpp
         cli/show_cmd.cpp
