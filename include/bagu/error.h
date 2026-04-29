@@ -30,6 +30,8 @@ enum class E : int {
     kDbMigrationFailed = 4003,
     kDbPrepareFailed = 4010,
     kDbExecuteFailed = 4011,
+    kCardNotFound = 4020,
+    kTopicNotFound = 4021,
 
     // 文件系统
     kFileNotFound = 7000,

@@ -17,6 +17,8 @@ if(SQLite3_FOUND)
         db/card_dao.cpp
         service/import_service.cpp
         cli/import_cmd.cpp
+        cli/list_cmd.cpp
+        cli/show_cmd.cpp
     )
 endif()
 

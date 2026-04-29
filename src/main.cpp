@@ -10,6 +10,8 @@
 #include "cli/config_cmd.h"
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
+#include "cli/list_cmd.h"
+#include "cli/show_cmd.h"
 
 int main(int argc, char** argv) {
     CLI::App app{"bagu - 八股文档智能学习助手"};
@@ -35,6 +37,11 @@ int main(int argc, char** argv) {
     auto* cmd_list = app.add_subcommand("list", "列出主题与章节");
     std::string list_topic;
     cmd_list->add_option("topic", list_topic, "主题名（可选）");
+
+    // ===== bagu show =====
+    auto* cmd_show = app.add_subcommand("show", "查看单张卡片完整内容");
+    int64_t show_id = 0;
+    cmd_show->add_option("id", show_id, "卡片 ID")->required();
 
     // ===== bagu search =====
     auto* cmd_search = app.add_subcommand("search", "全文搜索");
@@ -102,8 +109,10 @@ int main(int argc, char** argv) {
     }
     // 以下命令尚未实现，占位
     if (cmd_list->parsed()) {
-        std::cout << "bagu list: not implemented yet (M2)\n";
-        return 0;
+        return bagu::cli::run_list(list_topic);
+    }
+    if (cmd_show->parsed()) {
+        return bagu::cli::run_show(show_id);
     }
     if (cmd_search->parsed()) {
         std::cout << "bagu search '" << search_keyword << "': not implemented yet (M2)\n";
