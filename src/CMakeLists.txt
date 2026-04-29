@@ -3,12 +3,17 @@ set(BAGU_LIB_SOURCES
     util/path.cpp
     cli/init_cmd.cpp
     cli/config_cmd.cpp
+    parser/markdown_parser.cpp
 )
 
 if(SQLite3_FOUND)
     list(APPEND BAGU_LIB_SOURCES
         db/database.cpp
         db/statement.cpp
+        db/migrations.cpp
+        db/topic_dao.cpp
+        db/chapter_dao.cpp
+        db/card_dao.cpp
     )
 endif()
 
