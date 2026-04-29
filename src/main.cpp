@@ -8,6 +8,7 @@
 
 #include "bagu/version.h"
 #include "cli/config_cmd.h"
+#include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
 
 int main(int argc, char** argv) {
@@ -26,7 +27,9 @@ int main(int argc, char** argv) {
     // ===== bagu import =====
     auto* cmd_import = app.add_subcommand("import", "导入 markdown 八股文档");
     std::string import_path;
+    bool import_force = false;
     cmd_import->add_option("path", import_path, "文档路径")->required();
+    cmd_import->add_flag("--force", import_force, "即使内容未变也重新导入");
 
     // ===== bagu list =====
     auto* cmd_list = app.add_subcommand("list", "列出主题与章节");
@@ -94,11 +97,10 @@ int main(int argc, char** argv) {
         }
     }
 
-    // 以下命令尚未实现，占位
     if (cmd_import->parsed()) {
-        std::cout << "bagu import " << import_path << ": not implemented yet (M2)\n";
-        return 0;
+        return bagu::cli::run_import(import_path, import_force);
     }
+    // 以下命令尚未实现，占位
     if (cmd_list->parsed()) {
         std::cout << "bagu list: not implemented yet (M2)\n";
         return 0;

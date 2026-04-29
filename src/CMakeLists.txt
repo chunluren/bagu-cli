@@ -1,6 +1,7 @@
 # 核心代码库（让单测也能链接）
 set(BAGU_LIB_SOURCES
     util/path.cpp
+    util/hash.cpp
     cli/init_cmd.cpp
     cli/config_cmd.cpp
     parser/markdown_parser.cpp
@@ -14,6 +15,8 @@ if(SQLite3_FOUND)
         db/topic_dao.cpp
         db/chapter_dao.cpp
         db/card_dao.cpp
+        service/import_service.cpp
+        cli/import_cmd.cpp
     )
 endif()
 
@@ -30,6 +33,7 @@ target_link_libraries(bagu_lib
         spdlog::spdlog
         nlohmann_json::nlohmann_json
         tomlplusplus::tomlplusplus
+        OpenSSL::Crypto
 )
 
 if(SQLite3_FOUND)

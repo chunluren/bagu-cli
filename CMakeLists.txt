@@ -83,6 +83,14 @@ else()
     message(WARNING "libcurl not found, llm module will be disabled")
 endif()
 
+# OpenSSL（用于 SHA256 哈希）
+find_package(OpenSSL QUIET)
+if(OpenSSL_FOUND)
+    message(STATUS "OpenSSL found: ${OPENSSL_VERSION}")
+else()
+    message(FATAL_ERROR "OpenSSL not found (required for SHA256)")
+endif()
+
 # ===== GoogleTest（仅在测试构建时拉取）=====
 if(BAGU_BUILD_TESTS)
     FetchContent_Declare(
