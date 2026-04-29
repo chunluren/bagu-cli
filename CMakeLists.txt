@@ -64,7 +64,18 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE
 )
 
-FetchContent_MakeAvailable(CLI11 spdlog nlohmann_json tomlplusplus)
+# FTXUI — 终端 UI
+FetchContent_Declare(
+    ftxui
+    GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
+    GIT_TAG v5.0.0
+    GIT_SHALLOW TRUE
+)
+set(FTXUI_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+set(FTXUI_BUILD_DOCS OFF CACHE INTERNAL "")
+set(FTXUI_BUILD_TESTS OFF CACHE INTERNAL "")
+
+FetchContent_MakeAvailable(CLI11 spdlog nlohmann_json tomlplusplus ftxui)
 
 # ===== 可选依赖（后续阶段需要时启用）=====
 # SQLite3

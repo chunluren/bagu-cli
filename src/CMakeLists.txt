@@ -19,10 +19,12 @@ if(SQLite3_FOUND)
         db/review_dao.cpp
         service/import_service.cpp
         service/review_service.cpp
+        tui/review_screen.cpp
         cli/import_cmd.cpp
         cli/list_cmd.cpp
         cli/show_cmd.cpp
         cli/search_cmd.cpp
+        cli/review_cmd.cpp
     )
 endif()
 
@@ -40,6 +42,9 @@ target_link_libraries(bagu_lib
         nlohmann_json::nlohmann_json
         tomlplusplus::tomlplusplus
         OpenSSL::Crypto
+        ftxui::screen
+        ftxui::dom
+        ftxui::component
 )
 
 if(SQLite3_FOUND)

@@ -11,6 +11,7 @@
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
 #include "cli/list_cmd.h"
+#include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
 #include "cli/show_cmd.h"
 
@@ -58,8 +59,12 @@ int main(int argc, char** argv) {
     auto* cmd_review = app.add_subcommand("review", "进入交互式复习模式");
     std::string review_topic;
     int review_num = 0;
+    bool review_new_only = false;
+    bool review_all = false;
     cmd_review->add_option("--topic", review_topic, "限定主题");
     cmd_review->add_option("-n,--num", review_num, "复习题数");
+    cmd_review->add_flag("--new-only", review_new_only, "只学新卡");
+    cmd_review->add_flag("--all", review_all, "复习所有到期卡片");
 
     // ===== bagu interview =====
     auto* cmd_interview = app.add_subcommand("interview", "AI 模拟面试");
@@ -124,8 +129,12 @@ int main(int argc, char** argv) {
         return bagu::cli::run_search(search_keyword, search_topic, search_limit);
     }
     if (cmd_review->parsed()) {
-        std::cout << "bagu review: not implemented yet (M3)\n";
-        return 0;
+        bagu::cli::ReviewOptions ropts;
+        ropts.topic = review_topic;
+        ropts.num = review_num;
+        ropts.new_only = review_new_only;
+        ropts.all = review_all;
+        return bagu::cli::run_review(ropts);
     }
     if (cmd_interview->parsed()) {
         std::cout << "bagu interview: not implemented yet (M4)\n";
