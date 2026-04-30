@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -22,6 +23,14 @@ std::string trim(std::string_view s) {
     size_t end = s.size();
     while (end > start && std::isspace(static_cast<unsigned char>(s[end - 1]))) --end;
     return std::string(s.substr(start, end - start));
+}
+
+/// 安全解析整数：失败 / 越界 → 返回 default_value
+int safe_to_int(std::string_view s, int default_value = 0) {
+    int v = default_value;
+    auto [ptr, ec] = std::from_chars(s.data(), s.data() + s.size(), v);
+    if (ec != std::errc()) return default_value;
+    return v;
 }
 
 std::vector<std::string> split_lines(std::string_view content) {
@@ -178,7 +187,11 @@ Result<ParsedDocument> MarkdownParser::parse_string(std::string_view content,
             ch.level = 2;
             ch.source_line = line_no;
             if (m[1].matched) {
-                ch.chapter_no = std::stoi(m[1].str());
+                ch.chapter_no = safe_to_int(m[1].str(), 0);
+                // 越界（>INT_MAX）或解析失败时退化为无章号
+                if (ch.chapter_no <= 0) {
+                    ch.chapter_no = -static_cast<int>(doc.chapters.size() + 1);
+                }
             } else {
                 // ## XXX 无章号 → 用递增的负数表示，避免冲突
                 ch.chapter_no = -static_cast<int>(doc.chapters.size() + 1);
@@ -194,8 +207,8 @@ Result<ParsedDocument> MarkdownParser::parse_string(std::string_view content,
         if (std::regex_match(line, m, kRegexH3Section)) {
             flush_section_card();
 
-            int n = std::stoi(m[1].str());
-            int sub = std::stoi(m[2].str());
+            int n = safe_to_int(m[1].str(), 0);
+            int sub = safe_to_int(m[2].str(), 0);
             int section_no = n * 1000 + sub;
             std::string name = trim(m[3].str());
 

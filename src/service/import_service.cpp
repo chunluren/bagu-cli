@@ -144,18 +144,30 @@ FileImportResult ImportService::import_file(const fs::path& path, const Options&
     } else {
         topic_id = existing_r.value()->id;
         topic.id = topic_id;
-        // 删旧的章节和卡片（CASCADE 会清 chapter+card）
-        auto del = db_.execute("DELETE FROM chapter WHERE topic_id = " +
-            std::to_string(topic_id));
-        if (del.is_err()) {
-            result.error = del.error().message;
-            return result;
+        // 删旧的章节和卡片（用 prepared statement，与 DAO 层保持一致）
+        {
+            auto stmt = db_.prepare("DELETE FROM chapter WHERE topic_id = ?");
+            if (!stmt) {
+                result.error = "prepare DELETE chapter failed";
+                return result;
+            }
+            stmt.bind(1, topic_id);
+            if (stmt.execute() < 0) {
+                result.error = "DELETE chapter failed";
+                return result;
+            }
         }
-        auto del2 = db_.execute("DELETE FROM card WHERE topic_id = " +
-            std::to_string(topic_id));
-        if (del2.is_err()) {
-            result.error = del2.error().message;
-            return result;
+        {
+            auto stmt = db_.prepare("DELETE FROM card WHERE topic_id = ?");
+            if (!stmt) {
+                result.error = "prepare DELETE card failed";
+                return result;
+            }
+            stmt.bind(1, topic_id);
+            if (stmt.execute() < 0) {
+                result.error = "DELETE card failed";
+                return result;
+            }
         }
         auto upd = topic_dao.update(topic);
         if (upd.is_err()) {

@@ -97,6 +97,24 @@ Result<int64_t> CardDao::count_by_topic(int64_t topic_id) {
     return stmt.column_int64(0);
 }
 
+namespace {
+/// 把用户的 keyword 转成 FTS5 安全的 phrase 查询：
+///   "MVCC 实现" → "\"MVCC 实现\""
+///   含特殊字符（OR / AND / NEAR / * / -）也都被当字面量
+/// 内部双引号需转义为两个双引号（FTS5 语法）
+std::string fts5_quote_phrase(const std::string& kw) {
+    std::string out;
+    out.reserve(kw.size() + 4);
+    out.push_back('"');
+    for (char c : kw) {
+        if (c == '"') out.push_back('"');  // " → ""
+        out.push_back(c);
+    }
+    out.push_back('"');
+    return out;
+}
+}
+
 Result<std::vector<Card>> CardDao::search(const std::string& keyword,
                                          int64_t topic_id, int limit) {
     std::vector<Card> result;
@@ -109,8 +127,11 @@ Result<std::vector<Card>> CardDao::search(const std::string& keyword,
     auto stmt = db_.prepare(sql);
     if (!stmt) return make_err<std::vector<Card>>(E::kDbPrepareFailed, "prepare failed");
 
+    // 把用户输入按 FTS5 phrase 包起来，避免 OR / AND 等关键字被当查询语法
+    std::string safe_kw = fts5_quote_phrase(keyword);
+
     int idx = 1;
-    stmt.bind(idx++, keyword);
+    stmt.bind(idx++, safe_kw);
     if (topic_id > 0) stmt.bind(idx++, topic_id);
     stmt.bind(idx, limit);
 

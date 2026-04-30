@@ -145,4 +145,23 @@ TEST(TopicNameFromFilename, EmptyOrEdge) {
     EXPECT_EQ(topic_name_from_filename(""), "untitled");
 }
 
+TEST_F(MarkdownParserTest, ChapterNumberOverflow_DoesNotCrash) {
+    // 超长数字（> INT_MAX）旧版本会 std::stoi 抛异常
+    auto r = parser.parse_string(
+        "## 第 99999999999 章 huge\n"
+        "正文\n", "x.md");
+    ASSERT_TRUE(r.is_ok());  // 不应崩溃
+    ASSERT_EQ(r.value().chapters.size(), 1u);
+    // 越界 → 退化为无章号（< 0）
+    EXPECT_LT(r.value().chapters[0].chapter_no, 0);
+}
+
+TEST_F(MarkdownParserTest, SubchapterNumberOverflow_HandledGracefully) {
+    auto r = parser.parse_string(
+        "## 第 1 章 ok\n"
+        "### 99999999999.99999999999 huge\n"
+        "正文\n", "x.md");
+    ASSERT_TRUE(r.is_ok());
+}
+
 }  // namespace bagu::parser

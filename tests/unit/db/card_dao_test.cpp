@@ -108,4 +108,24 @@ TEST_F(CardDaoTest, RemoveByTopic_DeletesAll) {
     EXPECT_EQ(cards_->count_by_topic(topic_id_).value(), 0);
 }
 
+TEST_F(CardDaoTest, Search_KeywordWithFts5Operators_DoesNotErrorOut) {
+    // FTS5 关键字（OR / AND / NEAR / *）必须被当字面量处理
+    cards_->insert(make_card("foo OR bar", "baz"));
+    cards_->insert(make_card("hello", "world"));
+
+    // 这些 keyword 在原始 FTS5 语法中是关键字，过去会报 malformed
+    for (const auto& kw : {"OR", "AND", "foo OR", "*", "-bar", "NEAR"}) {
+        auto r = cards_->search(kw, 0, 10);
+        ASSERT_TRUE(r.is_ok()) << "search failed on keyword='" << kw
+                               << "' err=" << (r.is_err() ? r.error().message : "");
+    }
+}
+
+TEST_F(CardDaoTest, Search_KeywordWithDoubleQuote_HandledSafely) {
+    cards_->insert(make_card("说 \"hello\" 即可", "answer"));
+    auto r = cards_->search("\"hello\"", 0, 10);
+    ASSERT_TRUE(r.is_ok());
+    // 至少不崩溃；命中与否取决于分词，关键是不抛错误
+}
+
 }  // namespace bagu::db

@@ -19,6 +19,7 @@ int64_t local_midnight(int64_t ts) {
     lt.tm_hour = 0;
     lt.tm_min = 0;
     lt.tm_sec = 0;
+    lt.tm_isdst = -1;  // 让 mktime 自动判断 DST，避免跨夏令时切换日错位
     return static_cast<int64_t>(std::mktime(&lt));
 }
 
