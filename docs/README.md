@@ -6,6 +6,7 @@
 
 ### 📋 产品（product/）
 - [PRD - 产品需求文档](./product/PRD.md)
+- [PRD-web-ui - Web UI 需求（v0.3 计划）](./product/PRD-web-ui.md)
 - [用户画像](./product/personas.md)
 
 ### 🏗 架构（architecture/）
@@ -13,6 +14,8 @@
 - [数据模型](./architecture/data-model.md)
 - [CLI 命令规范](./architecture/cli-spec.md)
 - [模块详细设计（LLD）](./architecture/modules.md)
+- [Web UI 架构（v0.3）](./architecture/web-ui-overview.md)
+- [HTTP API 规范](./architecture/http-api-spec.md)
 - [架构决策记录（ADR）](./architecture/adr/README.md)
 
 ### 💻 开发（development/）
@@ -38,6 +41,7 @@
 
 ### 📅 规划（planning/）
 - [产品路线图（Roadmap）](./planning/roadmap.md)
+- [Web UI 实施路线图（v0.3-v0.4）](./planning/web-ui-roadmap.md)
 - [里程碑](./planning/milestones.md)
 - [风险登记册](./planning/risks.md)
 - [完成定义（DoD）](./planning/definition-of-done.md)

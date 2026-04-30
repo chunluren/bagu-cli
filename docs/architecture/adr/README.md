@@ -28,6 +28,9 @@ Proposed → Accepted → (Deprecated → Superseded by ADR-NNNN)
 | 0001 | [选用 C++20](./0001-use-cpp20.md) | Accepted | 2026-04-29 |
 | 0002 | [选 SQLite + FTS5 作为存储](./0002-use-sqlite-with-fts5.md) | Accepted | 2026-04-29 |
 | 0003 | [用 CMake FetchContent 管理依赖](./0003-use-cmake-fetchcontent.md) | Accepted | 2026-04-29 |
+| 0004 | [增加 HTTP server 模式（bagu serve）](./0004-add-http-server-mode.md) | Proposed | 2026-04-30 |
+| 0005 | [HTTP server 选用 cpp-httplib](./0005-choose-cpp-httplib.md) | Proposed | 2026-04-30 |
+| 0006 | [前端选 Vite + React + TS + Tailwind](./0006-frontend-stack-vite-react.md) | Proposed | 2026-04-30 |
 
 ## 添加新 ADR
 
