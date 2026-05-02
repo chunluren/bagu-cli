@@ -9,6 +9,18 @@
 
 ## [Unreleased]
 
+### Docs — 用户手册（v1.0 准备）
+
+新增 `docs/user-guide/`：
+- `getting-started.md` — 5 分钟上手（安装 / init / import / 复习 / 面试 / serve）
+- `config.md` — `~/.bagu/config.toml` 全字段
+- `web-ui.md` — `bagu serve` 路由 / API / 局域网手机访问 / PWA 安装
+- `llm-providers.md` — OpenAI / Claude / Ollama / 兼容代理 / 错误码
+- `markdown-format.md` — 题库 markdown 格式规范 + 常见坑
+- `faq.md` — 安装 / 数据 / 复习 / 面试 / 性能 / 隐私 / 调试
+
+`docs/README.md` 与 README.md 顶部均加入用户手册入口。
+
 ### CI/CD — 多平台 matrix + Web 构建接入（v1.0 准备）
 
 #### `.github/workflows/ci.yml`

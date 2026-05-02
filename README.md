@@ -5,8 +5,10 @@
 [![CI](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![Tests](https://img.shields.io/badge/tests-135%20passed-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-171%20passed-brightgreen.svg)](#)
 [![Version](https://img.shields.io/badge/version-v0.3.0-blue.svg)](https://github.com/chunluren/bagu-cli/releases/tag/v0.3.0)
+
+> **📖 [用户手册](./docs/user-guide/README.md)** — 安装 / 配置 / Web UI / LLM 接入 / FAQ
 
 ---
 
