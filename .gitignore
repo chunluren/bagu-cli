@@ -19,6 +19,7 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+!scripts/*.cmake
 
 # Compiled
 *.o

@@ -9,6 +9,25 @@
 
 ## [Unreleased]
 
+### Added — 主题切换 + PWA（v0.4 Sprint 8）
+
+#### 主题手动切换
+- Tailwind 切换 `darkMode: 'media' → 'class'`
+- `web/src/hooks/useTheme.ts` — light / dark / system 三态，持久化到 localStorage；system 模式实时跟随 prefers-color-scheme
+- `web/src/components/ThemeToggle.tsx` — 顶部 3 段开关（图标按钮）
+- `bootstrapTheme()` 在 React 挂载前同步 `.dark` class，无首屏闪白
+- highlight.js 主题改为 class-toggleable（手写 .dark .hljs-* 样式）
+
+#### PWA
+- `public/manifest.webmanifest` — display=standalone + 3 个快捷入口（复习 / 面试 / 统计）
+- `public/sw.js` — 极简 SW：app shell cache-first + /api/* network-only + 导航 fallback /
+- `public/icon-{192,512}.png` + `apple-touch-icon.png`（Pillow 生成 · 八字 logo）
+- `public/favicon.svg` 替换为 bagu-themed 简洁 SVG
+- `index.html` 增 manifest / apple-touch-icon / theme-color (light+dark) / apple-mobile-web-app-* 元
+- `pwa.ts` 在生产构建里 `navigator.serviceWorker.register('/sw.js')`，dev 模式跳过避免 HMR 冲突
+- `gen_embedded_assets.cmake` 新增 `.webmanifest` mime 映射
+- 嵌入资源数 7 → 12（含 PNG 二进制）
+
 ### Added — Web 学习统计页（v0.4 Sprint 7）
 
 #### Backend

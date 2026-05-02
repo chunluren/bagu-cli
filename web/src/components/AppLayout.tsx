@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Home, Search, Brain, BarChart3, Bot } from 'lucide-react';
 
+import { ThemeToggle } from './ThemeToggle';
+
 interface Props {
   children: ReactNode;
 }
@@ -22,7 +24,7 @@ export function AppLayout({ children }: Props) {
           <Link to="/" className="font-mono text-lg font-semibold">
             <span className="text-bagu-accent">bagu</span>-cli
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1 flex-1">
             {navItems.map(({ to, icon: Icon, label }) => (
               <NavLink
                 key={to}
@@ -37,10 +39,11 @@ export function AppLayout({ children }: Props) {
                 }
               >
                 <Icon size={16} />
-                {label}
+                <span className="hidden sm:inline">{label}</span>
               </NavLink>
             ))}
           </nav>
+          <ThemeToggle />
         </div>
       </header>
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6">{children}</main>
