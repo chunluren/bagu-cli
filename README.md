@@ -180,43 +180,48 @@ $ bagu stats --heatmap
 
 ## 安装
 
-### 系统要求
-
-- Linux / macOS（Windows 可用 WSL2）
-- GCC 11+ / Clang 14+
-- CMake 3.20+
-- SQLite3 + libcurl + OpenSSL（开发库）
-
-### Ubuntu / Debian
+### Homebrew（推荐 · macOS arm64 / Linux x86_64）
 
 ```bash
-sudo apt install -y \
-    build-essential cmake ninja-build \
-    libsqlite3-dev libcurl4-openssl-dev libssl-dev
+brew tap chunluren/bagu
+brew install bagu-cli
 ```
 
-### macOS
+### 下载预编译二进制
 
 ```bash
-brew install cmake ninja sqlite curl openssl
+# Linux x86_64
+curl -LO https://github.com/chunluren/bagu-cli/releases/latest/download/bagu-v0.4.0-linux-x86_64.tar.gz
+tar -xzf bagu-v0.4.0-linux-x86_64.tar.gz && sudo mv bagu /usr/local/bin/
+
+# macOS Apple Silicon
+curl -LO https://github.com/chunluren/bagu-cli/releases/latest/download/bagu-v0.4.0-macos-arm64.tar.gz
+tar -xzf bagu-v0.4.0-macos-arm64.tar.gz && sudo mv bagu /usr/local/bin/
 ```
 
-### 编译
+### 从源码构建
+
+需要：CMake 3.20+ / GCC 11+ 或 Clang 14+ / Node 20+ / SQLite3 / libcurl / OpenSSL（开发库）。
 
 ```bash
-git clone https://github.com/<user>/bagu-cli.git
+# Ubuntu / Debian
+sudo apt install -y build-essential cmake ninja-build \
+    libsqlite3-dev libcurl4-openssl-dev libssl-dev nodejs npm
+
+# macOS
+brew install cmake ninja sqlite curl openssl node
+
+git clone https://github.com/chunluren/bagu-cli.git
 cd bagu-cli
 
-mkdir build && cd build
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
-ninja
-```
+# 1. 构建前端（产物 web/dist 自动嵌入二进制）
+cd web && npm ci && npm run build && cd ..
 
-> 首次构建会自动下载 CLI11 / spdlog / FTXUI / GoogleTest 等依赖（约 1-3 分钟）
+# 2. 构建 C++（首次会下 CLI11 / spdlog / FTXUI / cpp-httplib，~1-3 分钟）
+cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
 
-可执行文件在 `build/src/bagu`。安装到系统：
-```bash
-sudo cmake --install . --prefix /usr/local
+sudo cp build/src/bagu /usr/local/bin/
 ```
 
 ---

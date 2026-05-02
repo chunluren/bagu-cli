@@ -17,18 +17,27 @@
 
 ## 安装
 
-### 选 1：下载预编译包
+### 选 1：Homebrew（推荐）
+
+```bash
+brew tap chunluren/bagu
+brew install bagu-cli
+```
+
+支持 macOS Apple Silicon + Linux x86_64。其他平台 brew 会从源码构建（要 Node 20+ / cmake / sqlite / libcurl / openssl）。
+
+### 选 2：下载预编译包
 
 ```bash
 # Linux x86_64
-curl -LO https://github.com/chunluren/bagu-cli/releases/latest/download/bagu-vX.Y.Z-linux-x86_64.tar.gz
-tar -xzf bagu-vX.Y.Z-linux-x86_64.tar.gz
+curl -LO https://github.com/chunluren/bagu-cli/releases/latest/download/bagu-v0.4.0-linux-x86_64.tar.gz
+tar -xzf bagu-v0.4.0-linux-x86_64.tar.gz
 sudo mv bagu /usr/local/bin/
 ```
 
-macOS Apple Silicon 用 `macos-arm64`，Intel 用 `macos-x86_64`。
+macOS Apple Silicon 用 `macos-arm64`。Intel Mac 暂未发预编译，请用源码构建（选 3）。
 
-### 选 2：从源码构建
+### 选 3：从源码构建
 
 需要：CMake 3.20+ / GCC 11+ 或 Clang 14+ / Node 20+ / SQLite3 / libcurl / OpenSSL。
 

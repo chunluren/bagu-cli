@@ -9,6 +9,14 @@
 
 ## [Unreleased]
 
+### Added — Homebrew tap
+
+- 仓库 `chunluren/bagu-cli` 由 private 改 public
+- 新仓库 `chunluren/homebrew-bagu` — Homebrew tap
+- `Formula/bagu-cli.rb` 优先用预编译二进制（macOS arm64 / Linux x86_64），其他平台 fallback 到 `--HEAD` 源码构建
+- 安装：`brew tap chunluren/bagu && brew install bagu-cli`
+- README + 用户手册首次推荐 brew 安装路径
+
 ### Added — Playwright e2e（v0.4 Sprint 9）
 
 #### `web/`
