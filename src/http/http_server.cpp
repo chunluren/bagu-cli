@@ -9,6 +9,7 @@
 #include "db/chapter_dao.h"
 #include "db/topic_dao.h"
 #include "http/json_io.h"
+#include "service/review_service.h"
 
 namespace bagu::http {
 
@@ -126,6 +127,7 @@ void HttpServer::register_routes() {
     register_topic_routes();
     register_card_routes();
     register_search_routes();
+    register_review_routes();
 }
 
 // ============================================================================
@@ -246,6 +248,90 @@ void HttpServer::register_card_routes() {
             {"total", cards_r.value().size()},
         });
     });
+}
+
+// ============================================================================
+// /api/review
+// ============================================================================
+void HttpServer::register_review_routes() {
+    // GET /api/review/due?topic=xxx&max_due=20&max_new=5
+    svr_.Get("/api/review/due",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            service::ReviewPlan plan;
+            plan.max_due = 20;
+            plan.max_new = 5;
+
+            std::string topic = req.get_param_value("topic");
+            if (!topic.empty()) {
+                auto t_r = db::TopicDao(db_).find_by_name(topic);
+                if (t_r.is_err()) { send_error(res, t_r.error()); return; }
+                if (!t_r.value().has_value()) {
+                    send_error(res, E::kTopicNotFound, "topic not found");
+                    return;
+                }
+                plan.topic_id = t_r.value()->id;
+            }
+
+            auto parse_int = [&](const std::string& key, int& out) {
+                if (req.has_param(key)) {
+                    try { out = std::stoi(req.get_param_value(key)); }
+                    catch (...) { /* keep default */ }
+                }
+            };
+            parse_int("max_due", plan.max_due);
+            parse_int("max_new", plan.max_new);
+
+            // 直接复用 ReviewService（虽然要新建一份 service 实例，DAO 是廉价的）
+            service::ReviewService svc(db_);
+            auto r = svc.get_due_cards(plan);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+
+            json items = json::array();
+            for (const auto& d : r.value()) items.push_back(to_json(d));
+            send_json(res, 200, json{
+                {"topic", topic},
+                {"max_due", plan.max_due},
+                {"max_new", plan.max_new},
+                {"cards", items},
+            });
+        });
+
+    // POST /api/review/:id/grade  body: { "score": 4, "duration_ms": 5000 }
+    svr_.Post(R"(/api/review/(\d+)/grade)",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            int64_t card_id = 0;
+            try { card_id = std::stoll(req.matches[1].str()); }
+            catch (...) {
+                send_error(res, E::kArgInvalidValue, "invalid card id");
+                return;
+            }
+
+            int score = -1;
+            int duration_ms = 0;
+            try {
+                json body = json::parse(req.body.empty() ? "{}" : req.body);
+                if (body.contains("score") && body["score"].is_number_integer()) {
+                    score = body["score"].get<int>();
+                }
+                if (body.contains("duration_ms") && body["duration_ms"].is_number_integer()) {
+                    duration_ms = body["duration_ms"].get<int>();
+                }
+            } catch (const json::exception& e) {
+                send_error(res, E::kArgInvalidValue, "invalid JSON body", e.what());
+                return;
+            }
+
+            if (score < 0 || score > 5) {
+                send_error(res, E::kArgInvalidValue,
+                    "score 必须在 0-5 之间", "score=" + std::to_string(score));
+                return;
+            }
+
+            service::ReviewService svc(db_);
+            auto r = svc.submit_review(card_id, score, duration_ms);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            send_json(res, 200, to_json(r.value()));
+        });
 }
 
 // ============================================================================

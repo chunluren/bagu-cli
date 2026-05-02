@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout';
 import { CardPage } from './pages/CardPage';
 import { HomePage } from './pages/HomePage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { ReviewPage } from './pages/ReviewPage';
 import { SearchPage } from './pages/SearchPage';
 import { TopicPage } from './pages/TopicPage';
 
@@ -16,15 +17,7 @@ function App() {
           <Route path="/topics/:name" element={<TopicPage />} />
           <Route path="/cards/:id" element={<CardPage />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route
-            path="/review"
-            element={
-              <PlaceholderPage
-                title="复习模式"
-                hint="复习页将在 Sprint 3 实现，含 SM-2 评分按钮、键盘快捷键、移动端触屏。"
-              />
-            }
-          />
+          <Route path="/review" element={<ReviewPage />} />
           <Route
             path="/stats"
             element={

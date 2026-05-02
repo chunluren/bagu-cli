@@ -161,4 +161,56 @@ TEST_F(HttpServerTest, NotFound_ReturnsErrorJson) {
     EXPECT_TRUE(j.contains("error"));
 }
 
+// ===== Review =====
+
+TEST_F(HttpServerTest, ReviewDue_ReturnsNewCardsForFreshTopic) {
+    auto r = client().Get("/api/review/due?topic=mysql&max_new=10");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    ASSERT_TRUE(j["cards"].is_array());
+    EXPECT_EQ(j["cards"].size(), 1u);  // 测试 fixture 里只有 1 张 card
+    EXPECT_EQ(j["cards"][0]["is_new"], true);
+}
+
+TEST_F(HttpServerTest, ReviewGrade_UpdatesReview) {
+    auto r = client().Post("/api/review/1/grade",
+        R"({"score":5,"duration_ms":1234})", "application/json");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["card_id"], 1);
+    EXPECT_EQ(j["repetitions"], 1);
+    EXPECT_EQ(j["interval_days"], 1);
+    EXPECT_GT(j["ease_factor"].get<double>(), 2.5);
+}
+
+TEST_F(HttpServerTest, ReviewGrade_OutOfRange_Returns400) {
+    auto r = client().Post("/api/review/1/grade",
+        R"({"score":9})", "application/json");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 400);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["error"]["code"], 2001);
+}
+
+TEST_F(HttpServerTest, ReviewGrade_BadJson_Returns400) {
+    auto r = client().Post("/api/review/1/grade",
+        "not-json", "application/json");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 400);
+}
+
+TEST_F(HttpServerTest, ReviewDue_AfterGrade_NoLongerDue) {
+    // 给 card 1 打 5 分（间隔变为 1 天）
+    client().Post("/api/review/1/grade",
+        R"({"score":5,"duration_ms":0})", "application/json");
+
+    // 取到期卡，max_new=0 → 应返回空
+    auto r = client().Get("/api/review/due?topic=mysql&max_new=0");
+    ASSERT_TRUE(r);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["cards"].size(), 0u);
+}
+
 }  // namespace bagu::http

@@ -54,3 +54,33 @@ export interface HealthResponse {
   version: string;
   schema_version: number;
 }
+
+export interface ReviewState {
+  card_id: number;
+  last_review: number;
+  next_review: number;
+  interval_days: number;
+  ease_factor: number;
+  repetitions: number;
+  review_count: number;
+  correct_count: number;
+  suspended: boolean;
+}
+
+export interface DueCard {
+  card_id: number;
+  topic_id: number;
+  topic_name: string;
+  question: string;
+  answer: string;
+  card_type: string;
+  is_new: boolean;
+  review: ReviewState;
+}
+
+export interface DueResponse {
+  topic: string;
+  max_due: number;
+  max_new: number;
+  cards: DueCard[];
+}

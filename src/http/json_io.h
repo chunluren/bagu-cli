@@ -81,3 +81,37 @@ inline json to_json(const db::Card& c) {
 }
 
 }  // namespace bagu::http
+
+// 引用 review_dao 中的类型，定义放命名空间外避免循环依赖
+#include "db/review_dao.h"
+
+namespace bagu::http {
+
+inline json to_json(const db::ReviewRow& r) {
+    return {
+        {"card_id", r.card_id},
+        {"last_review", r.last_review},
+        {"next_review", r.next_review},
+        {"interval_days", r.interval_days},
+        {"ease_factor", r.ease_factor},
+        {"repetitions", r.repetitions},
+        {"review_count", r.review_count},
+        {"correct_count", r.correct_count},
+        {"suspended", r.suspended},
+    };
+}
+
+inline json to_json(const db::DueCard& d) {
+    return {
+        {"card_id", d.card_id},
+        {"topic_id", d.topic_id},
+        {"topic_name", d.topic_name},
+        {"question", d.question},
+        {"answer", d.answer},
+        {"card_type", d.card_type},
+        {"is_new", d.is_new},
+        {"review", to_json(d.state)},
+    };
+}
+
+}  // namespace bagu::http
