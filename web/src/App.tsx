@@ -4,9 +4,9 @@ import { AppLayout } from './components/AppLayout';
 import { CardPage } from './pages/CardPage';
 import { HomePage } from './pages/HomePage';
 import { InterviewPage } from './pages/InterviewPage';
-import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ReviewPage } from './pages/ReviewPage';
 import { SearchPage } from './pages/SearchPage';
+import { StatsPage } from './pages/StatsPage';
 import { TopicPage } from './pages/TopicPage';
 
 function App() {
@@ -20,15 +20,7 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/review" element={<ReviewPage />} />
           <Route path="/interview" element={<InterviewPage />} />
-          <Route
-            path="/stats"
-            element={
-              <PlaceholderPage
-                title="学习统计"
-                hint="统计页将在 v0.4 实现，含连续打卡、热力图、薄弱卡片。"
-              />
-            }
-          />
+          <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

@@ -46,6 +46,7 @@ private:
     void register_card_routes();    // /api/cards, /api/cards/:id
     void register_search_routes();  // /api/search
     void register_review_routes();  // /api/review/due, /api/review/:id/grade
+    void register_stats_routes();   // /api/stats/*
 
     db::Database& db_;
     ServerOptions opts_;

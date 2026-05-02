@@ -9,6 +9,24 @@
 
 ## [Unreleased]
 
+### Added — Web 学习统计页（v0.4 Sprint 7）
+
+#### Backend
+- 4 个新接口（`HttpServer::register_stats_routes`）：
+  - `GET /api/stats/overall` — 总览（streak / 累计复习 / 正确率 / 30 天活跃）
+  - `GET /api/stats/topics` — 各主题进度（已学/总数 + 正确率 + 今日到期）
+  - `GET /api/stats/heatmap?days=N` — 每日复习计数（夹紧到 1-365）
+  - `GET /api/stats/weak?recent=N&top=K` — 最近答错最多的卡片
+
+#### Frontend
+- `web/src/components/Heatmap.tsx` — GitHub 风格热力图（按周排列、5 级颜色、点击跳转复习页）
+- `web/src/pages/StatsPage.tsx` — 完整统计页：4 张总览卡 + 热力图（30/90/180/365 切换）+ 主题进度条 + 薄弱卡片排行
+- 移除 PlaceholderPage（不再需要）
+
+#### Tests
+- 6 个新增 HTTP 单测（overall / topics / heatmap exact-days / heatmap clamp / weak empty / weak after failures）
+- 共 150 单测，100% 通过
+
 ### Added — Web 模拟面试（v0.4 Sprint 6）
 
 #### Backend

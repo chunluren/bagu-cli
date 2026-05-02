@@ -11,6 +11,7 @@
 #include "http/embedded_assets.h"
 #include "http/json_io.h"
 #include "service/review_service.h"
+#include "service/stats_service.h"
 
 #ifdef BAGU_HAVE_CURL
 #include "http/interview_routes.h"
@@ -167,6 +168,7 @@ void HttpServer::register_routes() {
     register_card_routes();
     register_search_routes();
     register_review_routes();
+    register_stats_routes();
 #ifdef BAGU_HAVE_CURL
     register_interview_routes(svr_, db_);
 #endif
@@ -420,6 +422,98 @@ void HttpServer::register_search_routes() {
             {"items", items},
         });
     });
+}
+
+// ============================================================================
+// /api/stats
+// ============================================================================
+void HttpServer::register_stats_routes() {
+    svr_.Get("/api/stats/overall",
+        [this](const httplib::Request&, httplib::Response& res) {
+            auto r = service::StatsService(db_).overall();
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            const auto& s = r.value();
+            send_json(res, 200, json{
+                {"total_topics", s.total_topics},
+                {"total_cards", s.total_cards},
+                {"total_reviews", s.total_reviews},
+                {"total_correct", s.total_correct},
+                {"learned_unique_cards", s.learned_unique_cards},
+                {"overall_accuracy", s.overall_accuracy},
+                {"streak_days", s.streak_days},
+                {"active_days_30", s.active_days_30},
+            });
+        });
+
+    svr_.Get("/api/stats/topics",
+        [this](const httplib::Request&, httplib::Response& res) {
+            auto r = service::StatsService(db_).per_topic();
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            json arr = json::array();
+            for (const auto& t : r.value()) {
+                arr.push_back({
+                    {"topic_id", t.topic_id},
+                    {"topic_name", t.topic_name},
+                    {"title", t.title},
+                    {"total_cards", t.total_cards},
+                    {"learned_cards", t.learned_cards},
+                    {"correct_cards", t.correct_cards},
+                    {"accuracy", t.accuracy},
+                    {"due_today", t.due_today},
+                });
+            }
+            send_json(res, 200, json{{"items", arr}});
+        });
+
+    svr_.Get("/api/stats/heatmap",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            int days = 90;
+            if (req.has_param("days")) {
+                try { days = std::stoi(req.get_param_value("days")); }
+                catch (...) { /* keep default */ }
+            }
+            if (days < 1) days = 1;
+            if (days > 365) days = 365;
+
+            auto r = service::StatsService(db_).daily_counts(days);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            json arr = json::array();
+            for (const auto& d : r.value()) {
+                arr.push_back({{"date", d.date}, {"count", d.count}});
+            }
+            send_json(res, 200, json{{"days", days}, {"items", arr}});
+        });
+
+    svr_.Get("/api/stats/weak",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            int recent_n = 200;
+            int top_k = 10;
+            if (req.has_param("recent")) {
+                try { recent_n = std::stoi(req.get_param_value("recent")); }
+                catch (...) { /* keep default */ }
+            }
+            if (req.has_param("top")) {
+                try { top_k = std::stoi(req.get_param_value("top")); }
+                catch (...) { /* keep default */ }
+            }
+            if (recent_n < 1) recent_n = 1;
+            if (top_k < 1) top_k = 1;
+            if (top_k > 100) top_k = 100;
+
+            auto r = service::StatsService(db_).weak_cards(recent_n, top_k);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            json arr = json::array();
+            for (const auto& w : r.value()) {
+                arr.push_back({
+                    {"card_id", w.card_id},
+                    {"topic_name", w.topic_name},
+                    {"question", w.question},
+                    {"wrong_count", w.wrong_count},
+                    {"total_recent", w.total_recent},
+                });
+            }
+            send_json(res, 200, json{{"items", arr}});
+        });
 }
 
 }  // namespace bagu::http

@@ -213,4 +213,77 @@ TEST_F(HttpServerTest, ReviewDue_AfterGrade_NoLongerDue) {
     EXPECT_EQ(j["cards"].size(), 0u);
 }
 
+// ============================================================================
+// /api/stats/*
+// ============================================================================
+
+TEST_F(HttpServerTest, StatsOverall_ReturnsCounts) {
+    auto r = client().Get("/api/stats/overall");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["total_topics"], 1);
+    EXPECT_EQ(j["total_cards"], 1);
+    EXPECT_TRUE(j.contains("streak_days"));
+    EXPECT_TRUE(j.contains("active_days_30"));
+    EXPECT_TRUE(j.contains("overall_accuracy"));
+}
+
+TEST_F(HttpServerTest, StatsTopics_ReturnsItems) {
+    auto r = client().Get("/api/stats/topics");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    ASSERT_EQ(j["items"].size(), 1u);
+    EXPECT_EQ(j["items"][0]["topic_name"], "mysql");
+    EXPECT_EQ(j["items"][0]["total_cards"], 1);
+}
+
+TEST_F(HttpServerTest, StatsHeatmap_ReturnsExactlyDaysItems) {
+    auto r = client().Get("/api/stats/heatmap?days=14");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["days"], 14);
+    EXPECT_EQ(j["items"].size(), 14u);
+    // 每个 item 都应该有 date 和 count 字段
+    EXPECT_TRUE(j["items"][0].contains("date"));
+    EXPECT_TRUE(j["items"][0].contains("count"));
+}
+
+TEST_F(HttpServerTest, StatsHeatmap_ClampsOutOfRange) {
+    // days=999 应被夹紧到 365
+    auto r = client().Get("/api/stats/heatmap?days=999");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    EXPECT_EQ(j["days"], 365);
+}
+
+TEST_F(HttpServerTest, StatsWeak_EmptyHistory_ReturnsEmpty) {
+    auto r = client().Get("/api/stats/weak");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    EXPECT_TRUE(j["items"].is_array());
+    // 没复习历史 → 空
+    EXPECT_EQ(j["items"].size(), 0u);
+}
+
+TEST_F(HttpServerTest, StatsWeak_AfterFailures_ListsCard) {
+    // 先打 1 分（失败）
+    client().Post("/api/review/1/grade",
+        R"({"score":1,"duration_ms":0})", "application/json");
+    client().Post("/api/review/1/grade",
+        R"({"score":2,"duration_ms":0})", "application/json");
+
+    auto r = client().Get("/api/stats/weak?recent=20&top=5");
+    ASSERT_TRUE(r);
+    EXPECT_EQ(r->status, 200);
+    auto j = json::parse(r->body);
+    ASSERT_GE(j["items"].size(), 1u);
+    EXPECT_EQ(j["items"][0]["card_id"], 1);
+    EXPECT_GE(j["items"][0]["wrong_count"].get<int>(), 2);
+}
+
 }  // namespace bagu::http

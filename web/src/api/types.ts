@@ -128,6 +128,48 @@ export interface FinishSessionResponse {
   total_score: number;
 }
 
+// ===== 统计 =====
+
+export interface OverallStats {
+  total_topics: number;
+  total_cards: number;
+  total_reviews: number;
+  total_correct: number;
+  learned_unique_cards: number;
+  overall_accuracy: number;
+  streak_days: number;
+  active_days_30: number;
+}
+
+export interface TopicProgress {
+  topic_id: number;
+  topic_name: string;
+  title: string;
+  total_cards: number;
+  learned_cards: number;
+  correct_cards: number;
+  accuracy: number;
+  due_today: number;
+}
+
+export interface DailyCount {
+  date: string;     // YYYY-MM-DD
+  count: number;
+}
+
+export interface HeatmapResponse {
+  days: number;
+  items: DailyCount[];
+}
+
+export interface WeakCard {
+  card_id: number;
+  topic_name: string;
+  question: string;
+  wrong_count: number;
+  total_recent: number;
+}
+
 /// SSE 流事件
 export type StreamEvent =
   | { type: 'chunk'; text: string }
