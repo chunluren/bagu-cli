@@ -13,22 +13,22 @@
 class BaguCli < Formula
   desc "八股文档智能学习助手 - Interview prep CLI tool"
   homepage "https://github.com/chunluren/bagu-cli"
-  version "0.4.0"
+  version "1.0.0"
   license "MIT"
 
   # 直接发预编译二进制（已嵌入 Web UI），避免用户装 Node + cmake 全套构建链
   on_macos do
     on_arm do
-      url "https://github.com/chunluren/bagu-cli/releases/download/v0.4.0/bagu-v0.4.0-macos-arm64.tar.gz"
-      sha256 "33b9c66c7dbc8581673b04ad2fe8a5c7e44471bc48b7eaa9be2d4540486f1709"
+      url "https://github.com/chunluren/bagu-cli/releases/download/v1.0.0/bagu-v1.0.0-macos-arm64.tar.gz"
+      sha256 "62ecbed38f5633e409da4cbba8c315f3a52f800d980d1e61d99f37b6bcbd1e9d"
     end
     # Intel Mac：暂未发预编译；从源码构建（见 head 块）
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/chunluren/bagu-cli/releases/download/v0.4.0/bagu-v0.4.0-linux-x86_64.tar.gz"
-      sha256 "c5c10bf2d8e2dc9f9206a867efa6103839f968c0c589f42ccf3f94b02951ddba"
+      url "https://github.com/chunluren/bagu-cli/releases/download/v1.0.0/bagu-v1.0.0-linux-x86_64.tar.gz"
+      sha256 "ac5b770f649e9c1fe2bb820d1221b471f54f9e992e5ee4b64dea2516ce134962"
     end
     # Linux ARM：暂未发预编译
   end
