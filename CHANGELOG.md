@@ -9,7 +9,28 @@
 
 ## [Unreleased]
 
-### Docs — 用户手册（v1.0 准备）
+（暂无变更）
+
+---
+
+## [0.4.0] - 2026-05-03
+
+**Web UI 完善版**：把 v0.3 的 SPA 骨架填满，并补全工程基础。
+
+### Highlights
+- 🤖 **AI 模拟面试** Web 页（流式 SSE + 多轮历史折叠 + 完成总结）
+- 📊 **学习统计** Web 页（GitHub 风格热力图 + 主题进度 + 薄弱卡片）
+- 🌓 **主题三态切换**（亮 / 暗 / 跟随系统，无首屏闪白）
+- 📱 **PWA**（manifest + service worker + 桌面/手机一键安装）
+- 🛡 **代码评审遗留批量修复**（SQLite FULLMUTEX / migration 拆事务 / curl OOM / OpenAI 协议层抽出）
+- 🚀 **CI matrix 扩到 5 组合** + release.yml 接入 web build（修复 v0.3 binaries 漏 UI 的 bug）
+- 📖 **6 份用户手册**
+
+171 单测全通过 · 嵌入资源 7 → 12 · 单二进制 ~41 MB（含完整前端）。
+
+---
+
+### Docs — 用户手册
 
 新增 `docs/user-guide/`：
 - `getting-started.md` — 5 分钟上手（安装 / init / import / 复习 / 面试 / serve）
@@ -346,5 +367,9 @@ C++20 · CMake · SQLite3 + FTS5 · CLI11 · FTXUI · toml++ · libcurl · OpenS
 
 ---
 
-[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/chunluren/bagu-cli/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/chunluren/bagu-cli/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/chunluren/bagu-cli/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/chunluren/bagu-cli/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/chunluren/bagu-cli/releases/tag/v0.1.0
