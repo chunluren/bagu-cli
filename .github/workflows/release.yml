@@ -9,8 +9,32 @@ permissions:
   contents: write
 
 jobs:
+  # 先构建一次前端，artifact 给 3 个目标平台共享
+  web-build:
+    name: Build Web
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - name: Install + build
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          if-no-files-found: error
+          retention-days: 1
+
   build-release:
     name: Build (${{ matrix.target }})
+    needs: web-build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,6 +48,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download web/dist
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
 
       - name: Install deps (Linux)
         if: runner.os == 'Linux'
@@ -48,6 +78,16 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
+      - name: Verify embedded assets
+        run: |
+          # 简单确认二进制内含至少 5 个嵌入文件标记（否则 web 没打进去）
+          # cpp-httplib 的 mime 字符串足够独特
+          if ! grep -aoq "manifest+json" build/src/bagu; then
+            echo "::error::Embedded web assets missing from binary"
+            exit 1
+          fi
+          ls -lh build/src/bagu
+
       - name: Package
         run: |
           mkdir -p dist
@@ -65,19 +105,21 @@ jobs:
 
   release:
     name: Publish Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: build-release
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: bagu-*    # 排除 web-dist
+          merge-multiple: true
 
       - name: Update existing GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.tar.gz
+          files: artifacts/*.tar.gz
           # 不覆盖已有 release notes（手工编辑过）
           fail_on_unmatched_files: true

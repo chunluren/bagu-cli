@@ -9,6 +9,21 @@
 
 ## [Unreleased]
 
+### CI/CD — 多平台 matrix + Web 构建接入（v1.0 准备）
+
+#### `.github/workflows/ci.yml`
+- 新增 `web-build` job：vite + tsc 构建后上传 `web-dist` artifact
+- `build-test` matrix 增至 5 组合：ubuntu-22 (gcc/clang) + ubuntu-24 (gcc/clang) + macos-14 (arm64)
+- 各平台从 artifact 下载 `web/dist`，二进制内嵌真正的前端
+- 新增 HTTP server smoke 子步骤：启动 `bagu serve`，curl 7 个关键端点 + PWA 资源
+- 新增 `web-lint` job：`tsc -b --noEmit` 类型检查
+- 移除 macos-13（Intel）从 CI（仅在 release 构建）
+
+#### `.github/workflows/release.yml`
+- **(critical)** 新增 `web-build` 前置 job — 之前发布的二进制根本没有 Web UI
+- 新增 `Verify embedded assets` 步骤：grep `manifest+json` 字符串，确保前端真的进了 binary
+- 释出包：linux-x86_64 / macos-x86_64 / macos-arm64
+
 ### Fixed — 代码评审遗留批量修复
 
 - **(important)** SQLite 连接 `OPEN_NOMUTEX → OPEN_FULLMUTEX`。`bagu serve` 多线程 handler

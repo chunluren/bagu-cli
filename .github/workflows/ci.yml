@@ -19,8 +19,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ----------------------------------------------------------------------------
+  # 前端构建：产物 web/dist 通过 artifact 共享给后续 build-test 作业，
+  # 多组 OS×编译器拿同一份 dist（不必各自 npm install）。
+  # ----------------------------------------------------------------------------
+  web-build:
+    name: Build Web (vite + tsc)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install npm deps
+        working-directory: web
+        run: npm ci
+
+      - name: Build
+        working-directory: web
+        run: npm run build
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  # ----------------------------------------------------------------------------
+  # C++ 构建 + 单测 — 5 组合：
+  #   ubuntu-22 (gcc/clang) · ubuntu-24 (gcc/clang) · macos-14 (Apple Silicon)
+  # ----------------------------------------------------------------------------
   build-test:
     name: Build & Test (${{ matrix.os }} / ${{ matrix.compiler }})
+    needs: web-build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -28,11 +65,17 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04]
         compiler: [gcc, clang]
         include:
-          - os: macos-13
+          - os: macos-14   # Apple Silicon
             compiler: clang
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download web/dist
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
 
       - name: Install deps (Linux)
         if: runner.os == 'Linux'
@@ -63,8 +106,7 @@ jobs:
       - name: Cache FetchContent deps
         uses: actions/cache@v4
         with:
-          path: |
-            build/_deps
+          path: build/_deps
           key: deps-${{ matrix.os }}-${{ matrix.compiler }}-${{ hashFiles('CMakeLists.txt') }}
           restore-keys: |
             deps-${{ matrix.os }}-${{ matrix.compiler }}-
@@ -88,9 +130,60 @@ jobs:
           ./build/src/bagu --version
           ./build/src/bagu --help
 
+      - name: Smoke test (HTTP server + PWA)
+        # 仅在 Linux 上跑（macOS runner 端口防火墙策略可能不同）
+        if: runner.os == 'Linux'
+        run: |
+          export BAGU_HOME="$(mktemp -d)"
+          ./build/src/bagu init
+          ./build/src/bagu serve --port 18900 --bind 127.0.0.1 &
+          SERVER_PID=$!
+          # 等 server 起来
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:18900/api/health >/dev/null; then break; fi
+            sleep 0.2
+          done
+          # 关键端点
+          curl -sf http://127.0.0.1:18900/api/health        | grep -q '"ok":true'
+          curl -sf http://127.0.0.1:18900/api/version       | grep -q version
+          curl -sf http://127.0.0.1:18900/api/topics        | grep -q '\['
+          curl -sf http://127.0.0.1:18900/api/stats/overall | grep -q total_topics
+          # SPA fallback：未注册路径 → index.html
+          curl -sf http://127.0.0.1:18900/interview         | grep -q '<!doctype html>'
+          # PWA 资源
+          curl -sf http://127.0.0.1:18900/manifest.webmanifest | grep -q '"name"'
+          curl -sf http://127.0.0.1:18900/sw.js                | grep -q -i 'service worker'
+          kill $SERVER_PID
+
+  # ----------------------------------------------------------------------------
+  # 前端类型检查（与 build-test 并行，不阻塞）
+  # ----------------------------------------------------------------------------
+  web-lint:
+    name: Web Type Check (tsc)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install npm deps
+        working-directory: web
+        run: npm ci
+
+      - name: Type check
+        working-directory: web
+        run: npx tsc -b --noEmit
+
+  # ----------------------------------------------------------------------------
+  # C++ 格式检查（不强制；记录到 step summary）
+  # ----------------------------------------------------------------------------
   lint:
     name: clang-format check
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Install clang-format
