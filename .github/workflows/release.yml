@@ -41,10 +41,10 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: linux-x86_64
-          - os: macos-13
-            target: macos-x86_64
           - os: macos-14
             target: macos-arm64
+          # macos-13 (Intel) runner deprecated by GitHub — jobs hang in queue >50min.
+          # Intel Mac users: build from source or run linux-x86_64 binary in Rosetta.
 
     steps:
       - uses: actions/checkout@v4
