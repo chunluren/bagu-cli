@@ -24,6 +24,7 @@ endif()
 if(SQLite3_FOUND AND CURL_FOUND)
     target_sources(bagu_tests PRIVATE
         unit/service/interview_service_test.cpp
+        unit/http/interview_routes_test.cpp
     )
 endif()
 

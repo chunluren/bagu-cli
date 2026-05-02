@@ -14,6 +14,7 @@ if(CURL_FOUND)
         llm/openai_client.cpp
         llm/factory.cpp
         llm/prompts.cpp
+        llm/config_loader.cpp
     )
 endif()
 
@@ -46,6 +47,7 @@ if(SQLite3_FOUND AND CURL_FOUND)
     list(APPEND BAGU_LIB_SOURCES
         service/interview_service.cpp
         cli/interview_cmd.cpp
+        http/interview_routes.cpp
     )
 endif()
 

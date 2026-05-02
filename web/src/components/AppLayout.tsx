@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Home, Search, Brain, BarChart3 } from 'lucide-react';
+import { Home, Search, Brain, BarChart3, Bot } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/', icon: Home, label: '主题' },
   { to: '/search', icon: Search, label: '搜索' },
   { to: '/review', icon: Brain, label: '复习' },
+  { to: '/interview', icon: Bot, label: '面试' },
   { to: '/stats', icon: BarChart3, label: '统计' },
 ];
 

@@ -84,3 +84,52 @@ export interface DueResponse {
   max_new: number;
   cards: DueCard[];
 }
+
+// ===== 面试 =====
+
+export interface InterviewSession {
+  id: number;
+  topic: string;
+  started_at: number;
+  ended_at: number;
+  total_score: number;
+  question_count: number;
+  llm_provider: string;
+  llm_model: string;
+}
+
+export interface InterviewQA {
+  id: number;
+  session_id: number;
+  question_no: number;
+  question: string;
+  user_answer: string;
+  ai_score: number;
+  ai_feedback: string;
+  duration_ms: number;
+}
+
+export interface InterviewSessionDetail extends InterviewSession {
+  qas: InterviewQA[];
+}
+
+export interface CreateSessionResponse {
+  session_id: number;
+  topic: string;
+  question_count: number;
+  provider: string;
+  model: string;
+}
+
+export interface FinishSessionResponse {
+  session_id: number;
+  answered: number;
+  avg_score: number;
+  total_score: number;
+}
+
+/// SSE 流事件
+export type StreamEvent =
+  | { type: 'chunk'; text: string }
+  | { type: 'done'; question_no: number; content?: string; score?: number; feedback?: string; qa_id?: number }
+  | { type: 'error'; message: string; detail?: string };

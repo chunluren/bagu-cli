@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { CardPage } from './pages/CardPage';
 import { HomePage } from './pages/HomePage';
+import { InterviewPage } from './pages/InterviewPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ReviewPage } from './pages/ReviewPage';
 import { SearchPage } from './pages/SearchPage';
@@ -18,6 +19,7 @@ function App() {
           <Route path="/cards/:id" element={<CardPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/review" element={<ReviewPage />} />
+          <Route path="/interview" element={<InterviewPage />} />
           <Route
             path="/stats"
             element={

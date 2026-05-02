@@ -1,10 +1,8 @@
 #include "cli/interview_cmd.h"
 
-#include <toml++/toml.h>
 #include <unistd.h>
 
 #include <chrono>
-#include <cstdlib>
 #include <iostream>
 #include <sstream>
 
@@ -12,6 +10,7 @@
 #include "db/database.h"
 #include "db/migrations.h"
 #include "db/topic_dao.h"
+#include "llm/config_loader.h"
 #include "llm/llm_client.h"
 #include "service/interview_service.h"
 #include "util/path.h"
@@ -32,52 +31,6 @@ struct Colors {
     const char* magenta() const { return enabled ? "\033[35m" : ""; }
     const char* reset()   const { return enabled ? "\033[0m" : ""; }
 };
-
-/// 加载 LLM 配置：从 ~/.bagu/config.toml + 环境变量 + CLI 选项
-Result<llm::ClientConfig> load_llm_config(const InterviewCliOptions& opts) {
-    llm::ClientConfig cfg;
-    cfg.provider = opts.provider;
-    cfg.model = opts.model;
-
-    auto path = util::default_config_path();
-    if (std::filesystem::exists(path)) {
-        try {
-            auto t = toml::parse_file(path.string());
-            if (auto sec = t["llm"].as_table()) {
-                // 安全取值辅助：单次 get_as + 单次解引用 + 显式 nullptr 校验
-                auto str_at = [&](std::string_view k) -> std::optional<std::string> {
-                    if (auto* node = sec->get_as<std::string>(k)) {
-                        return node->get();
-                    }
-                    return std::nullopt;
-                };
-
-                if (cfg.provider.empty()) {
-                    cfg.provider = str_at("provider").value_or("openai");
-                }
-                if (cfg.model.empty()) {
-                    if (auto v = str_at("model")) cfg.model = *v;
-                }
-                if (auto v = str_at("base_url")) cfg.base_url = *v;
-
-                if (auto env_name = str_at("api_key_env")) {
-                    const char* v = std::getenv(env_name->c_str());
-                    if (v) cfg.api_key = v;
-                    if (!v && cfg.provider != "ollama") {
-                        return make_err<llm::ClientConfig>(E::kLlmAuthFailed,
-                            "环境变量未设置: " + *env_name,
-                            "请 export " + *env_name + "=<your-key>");
-                    }
-                }
-            }
-        } catch (const toml::parse_error& e) {
-            return make_err<llm::ClientConfig>(E::kConfigInvalid,
-                "config.toml 解析失败", std::string(e.description()));
-        }
-    }
-    if (cfg.provider.empty()) cfg.provider = "openai";
-    return cfg;
-}
 
 /// 用户多行输入：以单独一行 . 或 EOF (Ctrl+D) 结束
 std::string read_user_answer() {
@@ -137,7 +90,7 @@ int run_interview(const InterviewCliOptions& opts) {
     }
 
     // 3. 加载 LLM 配置
-    auto cfg_r = load_llm_config(opts);
+    auto cfg_r = llm::load_config({opts.provider, opts.model});
     if (cfg_r.is_err()) {
         std::cerr << "Error: " << cfg_r.error().message << "\n  "
                   << cfg_r.error().detail << "\n";

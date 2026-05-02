@@ -9,7 +9,35 @@
 
 ## [Unreleased]
 
-（暂无变更）
+### Added — Web 模拟面试（v0.4 Sprint 6）
+
+#### Backend
+- `src/llm/config_loader.{h,cpp}` — 从 CLI 提取，REST 与 CLI 共享 LLM 配置加载逻辑
+- `src/http/interview_routes.{h,cpp}` — 5 个新接口：
+  - `POST /api/interview/sessions` — 创建会话（topic + question_count + 可选 provider/model 覆盖）
+  - `GET  /api/interview/sessions` — 最近会话列表
+  - `GET  /api/interview/sessions/:id` — 会话详情 + qa list
+  - `GET  /api/interview/sessions/:id/question` — SSE 流式出题
+  - `POST /api/interview/sessions/:id/answer` — SSE 流式评分
+  - `POST /api/interview/sessions/:id/finish` — 结束会话写入 ended_at + avg_score
+- SSE 帧格式：`data: {"type":"chunk","text":"…"}` / `{"type":"done",…}` / `{"type":"error",…}`
+- 进程内 `ServiceRegistry` 缓存进行中会话的 `InterviewService`（保留 system prompt）
+
+#### Frontend
+- `web/src/api/client.ts` 新增 `streamSSE()` — 用 fetch 而非 EventSource（支持 POST + body）
+- `web/src/pages/InterviewPage.tsx` — 完整 UI：
+  - 设置表单（主题 / 题数 / 高级 LLM 覆盖）
+  - 流式出题打字机效果
+  - 答题输入（Cmd/Ctrl+Enter 提交）
+  - 流式评分 + 颜色高亮分数
+  - 多轮历史折叠展示
+  - 完成总结页
+  - 错误恢复（一键返回设置）
+- 顶部导航新增「面试」入口
+
+#### Tests
+- 9 个新增 HTTP 单测（CreateSession 入参校验 / ListSessions / GetSession / Answer 与 Finish 在 session 不在内存时的 404）
+- 共 144 单测，100% 通过
 
 ---
 

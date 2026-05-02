@@ -12,6 +12,10 @@
 #include "http/json_io.h"
 #include "service/review_service.h"
 
+#ifdef BAGU_HAVE_CURL
+#include "http/interview_routes.h"
+#endif
+
 namespace bagu::http {
 
 using nlohmann::json;
@@ -163,6 +167,9 @@ void HttpServer::register_routes() {
     register_card_routes();
     register_search_routes();
     register_review_routes();
+#ifdef BAGU_HAVE_CURL
+    register_interview_routes(svr_, db_);
+#endif
 }
 
 // ============================================================================
