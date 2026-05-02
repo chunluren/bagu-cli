@@ -28,6 +28,12 @@ if(SQLite3_FOUND AND CURL_FOUND)
     )
 endif()
 
+if(CURL_FOUND)
+    target_sources(bagu_tests PRIVATE
+        unit/llm/openai_protocol_test.cpp
+    )
+endif()
+
 target_link_libraries(bagu_tests
     PRIVATE
         bagu_lib

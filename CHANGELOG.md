@@ -9,6 +9,23 @@
 
 ## [Unreleased]
 
+### Fixed — 代码评审遗留批量修复
+
+- **(important)** SQLite 连接 `OPEN_NOMUTEX → OPEN_FULLMUTEX`。`bagu serve` 多线程 handler
+  共用一个 Database 实例，原来的 NOMUTEX 是真实 UB；并发请求 smoke 测试通过
+- **(important)** `db::Database::migrate` 拆每个 migration 独立事务。
+  失败时不丢已成功的版本，下次启动只重试失败那一版
+- **(important)** `util/http.cpp` `make_header_list` 修 `curl_slist_append` OOM 泄漏：
+  失败时释放已累积 list、向调用方返回 `kNetworkError`，避免静默丢 header 与内存泄漏
+- **(refactor)** `OpenAIClient` 协议层抽出纯函数 namespace `openai_protocol`：
+  `build_chat_payload` / `parse_chat_response` / `parse_sse_line` / `map_http_status` /
+  `normalize_base_url`。无 IO，独立单测
+
+### Added
+
+- 21 个 OpenAI 协议层单测（payload 构建 / 响应解析 / SSE 解析 / 状态码映射 / URL 规范）
+- 共 171 单测，100% 通过
+
 ### Added — 主题切换 + PWA（v0.4 Sprint 8）
 
 #### 主题手动切换

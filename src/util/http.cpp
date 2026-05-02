@@ -3,7 +3,6 @@
 #include <curl/curl.h>
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
 #include <sstream>
 
 namespace bagu::util {
@@ -36,10 +35,27 @@ size_t write_stream_line(void* ptr, size_t size, size_t nmemb, void* userdata) {
     return size * nmemb;
 }
 
-curl_slist* make_header_list(const std::vector<std::string>& headers) {
+/// OOM-safe append。失败时释放已累积的 list 并返回 nullptr，调用方据此报错。
+[[nodiscard]] bool slist_append_safe(curl_slist*& list, const char* h) {
+    curl_slist* next = curl_slist_append(list, h);
+    if (!next) {
+        curl_slist_free_all(list);
+        list = nullptr;
+        return false;
+    }
+    list = next;
+    return true;
+}
+
+/// 构建 headers list；调用方负责检查返回值与 has_content_type。
+/// 失败（OOM）时返回 nullptr。
+curl_slist* make_header_list(const std::vector<std::string>& headers,
+                             bool& has_content_type) {
+    has_content_type = false;
     curl_slist* list = nullptr;
     for (const auto& h : headers) {
-        list = curl_slist_append(list, h.c_str());
+        if (h.find("Content-Type") != std::string::npos) has_content_type = true;
+        if (!slist_append_safe(list, h.c_str())) return nullptr;
     }
     return list;
 }
@@ -54,12 +70,15 @@ Result<HttpResponse> http_post_json(const std::string& url,
     if (!curl) return make_err<HttpResponse>(E::kNetworkError, "curl init failed");
 
     HttpResponse resp;
-    auto* hdr_list = make_header_list(headers);
-    if (hdr_list == nullptr ||
-        std::find_if(headers.begin(), headers.end(), [](const std::string& h){
-            return h.find("Content-Type") != std::string::npos;
-        }) == headers.end()) {
-        hdr_list = curl_slist_append(hdr_list, "Content-Type: application/json");
+    bool has_ct = false;
+    curl_slist* hdr_list = make_header_list(headers, has_ct);
+    if (!headers.empty() && hdr_list == nullptr) {
+        curl_easy_cleanup(curl);
+        return make_err<HttpResponse>(E::kNetworkError, "构建 headers 失败（OOM？）");
+    }
+    if (!has_ct && !slist_append_safe(hdr_list, "Content-Type: application/json")) {
+        curl_easy_cleanup(curl);
+        return make_err<HttpResponse>(E::kNetworkError, "追加 Content-Type 失败");
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -101,12 +120,16 @@ Result<int> http_post_json_stream(const std::string& url,
     if (!curl) return make_err<int>(E::kNetworkError, "curl init failed");
 
     StreamCtx ctx{&on_line, {}};
-    auto* hdr_list = make_header_list(headers);
     bool has_ct = false;
-    for (auto& h : headers) {
-        if (h.find("Content-Type") != std::string::npos) { has_ct = true; break; }
+    curl_slist* hdr_list = make_header_list(headers, has_ct);
+    if (!headers.empty() && hdr_list == nullptr) {
+        curl_easy_cleanup(curl);
+        return make_err<int>(E::kNetworkError, "构建 headers 失败（OOM？）");
     }
-    if (!has_ct) hdr_list = curl_slist_append(hdr_list, "Content-Type: application/json");
+    if (!has_ct && !slist_append_safe(hdr_list, "Content-Type: application/json")) {
+        curl_easy_cleanup(curl);
+        return make_err<int>(E::kNetworkError, "追加 Content-Type 失败");
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_POST, 1L);

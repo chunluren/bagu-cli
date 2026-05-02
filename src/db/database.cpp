@@ -73,7 +73,11 @@ void Database::close() {
 
 Result<Database> Database::open(const std::filesystem::path& path) {
     sqlite3* raw = nullptr;
-    int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX;
+    // FULLMUTEX：连接级互斥锁，让一个 Database 实例可被多线程共享。
+    // bagu serve（cpp-httplib 多线程 handler）共用一个 db_，必须串行化访问，
+    // 否则触发 SQLite undefined behavior。WAL 模式下读写并发由 SQLite 自身处理。
+    // 单线程 CLI 也照样开启：开销 ns 级，远低于 IO。
+    int flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
     int rc = sqlite3_open_v2(path.string().c_str(), &raw, flags, nullptr);
     if (rc != SQLITE_OK) {
         std::string msg = raw ? sqlite3_errmsg(raw) : "unknown";
@@ -196,13 +200,16 @@ Result<void> Database::migrate() {
     int current = schema_version();
     spdlog::debug("current schema version: {}", current);
 
-    Transaction txn(*this);
+    // 每个 migration 独立事务：失败时不丢已成功的版本，下次启动只重试失败那一版。
     for (const auto& m : migrations_) {
         if (m.version <= current) continue;
 
         spdlog::info("applying migration {} ({})", m.version, m.description);
+        Transaction txn(*this);
+
         auto exec_r = execute(m.sql);
         if (exec_r.is_err()) {
+            txn.rollback();
             return make_err(E::kDbMigrationFailed,
                 "migration 失败 v" + std::to_string(m.version),
                 exec_r.error().message);
@@ -212,15 +219,24 @@ Result<void> Database::migrate() {
             "INSERT INTO schema_version (version, applied_at, description) "
             "VALUES (?, strftime('%s','now'), ?)");
         if (!stmt) {
+            txn.rollback();
             return make_err(E::kDbMigrationFailed, "prepare schema_version insert failed");
         }
         stmt.bind(1, m.version);
         stmt.bind(2, m.description);
         if (stmt.execute() < 0) {
+            txn.rollback();
             return make_err(E::kDbMigrationFailed, "insert schema_version failed");
         }
+
+        auto commit_r = txn.commit();
+        if (commit_r.is_err()) {
+            return make_err(E::kDbMigrationFailed,
+                "migration commit 失败 v" + std::to_string(m.version),
+                commit_r.error().message);
+        }
     }
-    return txn.commit();
+    return Result<void>::ok();
 }
 
 }  // namespace bagu::db
