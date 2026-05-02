@@ -9,7 +9,27 @@
 
 ## [Unreleased]
 
-（暂无变更）
+### Added — Playwright e2e（v0.4 Sprint 9）
+
+#### `web/`
+- 引入 `@playwright/test` + chromium-headless-shell
+- `playwright.config.ts` 自动启动 `bagu serve`，配 `BAGU_HOME=/tmp/bagu-e2e` 隔离数据
+- `e2e/*.spec.ts` 21 个用例：
+  - `home.spec.ts` — 首页 nav / 5 入口 / 主题切换可见 / `/api/health`
+  - `theme.spec.ts` — 三态主题切换 / localStorage 持久化 / 刷新后保留
+  - `navigation.spec.ts` — 5 路由渲染 + SPA 404 fallback
+  - `stats.spec.ts` — 4 张统计卡 / 热力图 days 切换 / 薄弱卡片空态
+  - `api-smoke.spec.ts` — stats / interview 入参 / PWA 资源 mime
+- `e2e/README.md` 跑测说明 + 故障排查
+- 配 `--no-proxy-server` + `--proxy-bypass-list=<-loopback>` 避免 Clash / shadowsocks 拦截 localhost
+
+#### CI
+- `.github/workflows/ci.yml` 新增 `e2e` job（ubuntu-24，并行 build-test）：
+  - 构建 binary + npm ci + chromium install + 跑 21 用例
+  - 失败时上传 `playwright-report` artifact
+
+#### 仓库
+- `.gitignore` 加 `web/test-results/` `web/playwright-report/` `web/playwright/.cache/`
 
 ---
 
