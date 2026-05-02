@@ -14,6 +14,7 @@
 #include "cli/list_cmd.h"
 #include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
+#include "cli/serve_cmd.h"
 #include "cli/show_cmd.h"
 #include "cli/stats_cmd.h"
 
@@ -87,6 +88,17 @@ int main(int argc, char** argv) {
     cmd_stats->add_flag("--heatmap", stats_heatmap, "显示热力图");
     cmd_stats->add_option("--days", stats_days, "热力图天数")->capture_default_str();
 
+    // ===== bagu serve =====
+    auto* cmd_serve = app.add_subcommand("serve", "启动本地 HTTP server（Web UI）");
+    std::string serve_bind = "127.0.0.1";
+    int serve_port = 8780;
+    std::string serve_token;
+    bool serve_dev = false;
+    cmd_serve->add_option("--bind", serve_bind, "绑定地址")->capture_default_str();
+    cmd_serve->add_option("--port,-p", serve_port, "端口")->capture_default_str();
+    cmd_serve->add_option("--token", serve_token, "Bearer 鉴权 token");
+    cmd_serve->add_flag("--dev", serve_dev, "开发模式（CORS 放宽）");
+
     // ===== bagu config =====
     auto* cmd_config = app.add_subcommand("config", "配置管理");
     cmd_config->require_subcommand(1);
@@ -159,6 +171,14 @@ int main(int argc, char** argv) {
         sopts.heatmap = stats_heatmap;
         sopts.days = stats_days;
         return bagu::cli::run_stats(sopts);
+    }
+    if (cmd_serve->parsed()) {
+        bagu::cli::ServeOptions sopts;
+        sopts.bind = serve_bind;
+        sopts.port = serve_port;
+        sopts.token = serve_token;
+        sopts.dev = serve_dev;
+        return bagu::cli::run_serve(sopts);
     }
 
     return 0;

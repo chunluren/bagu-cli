@@ -31,12 +31,14 @@ if(SQLite3_FOUND)
         service/review_service.cpp
         service/stats_service.cpp
         tui/review_screen.cpp
+        http/http_server.cpp
         cli/import_cmd.cpp
         cli/list_cmd.cpp
         cli/show_cmd.cpp
         cli/search_cmd.cpp
         cli/review_cmd.cpp
         cli/stats_cmd.cpp
+        cli/serve_cmd.cpp
     )
 endif()
 
@@ -64,6 +66,7 @@ target_link_libraries(bagu_lib
         ftxui::screen
         ftxui::dom
         ftxui::component
+        httplib::httplib
 )
 
 if(SQLite3_FOUND)

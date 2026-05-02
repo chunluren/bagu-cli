@@ -75,7 +75,18 @@ set(FTXUI_BUILD_EXAMPLES OFF CACHE INTERNAL "")
 set(FTXUI_BUILD_DOCS OFF CACHE INTERNAL "")
 set(FTXUI_BUILD_TESTS OFF CACHE INTERNAL "")
 
-FetchContent_MakeAvailable(CLI11 spdlog nlohmann_json tomlplusplus ftxui)
+# cpp-httplib — HTTP server（用于 bagu serve）
+FetchContent_Declare(
+    cpp-httplib
+    GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+    GIT_TAG v0.18.5
+    GIT_SHALLOW TRUE
+)
+set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF CACHE INTERNAL "")  # v0.3 不做 https
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF CACHE INTERNAL "")
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF CACHE INTERNAL "")
+
+FetchContent_MakeAvailable(CLI11 spdlog nlohmann_json tomlplusplus ftxui cpp-httplib)
 
 # ===== 可选依赖（后续阶段需要时启用）=====
 # SQLite3
