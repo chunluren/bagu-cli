@@ -27,10 +27,17 @@ void on_signal(int sig) {
 int run_serve(const ServeOptions& opts) {
     auto db_path = util::default_db_path();
     if (!std::filesystem::exists(db_path)) {
-        std::cerr << "Error: 数据库不存在 (E"
-                  << static_cast<int>(E::kDbNotFound) << ")\n\n"
-                  << "提示：请先 `bagu init` 并 `bagu import <path>`\n";
-        return to_exit_code(static_cast<int>(E::kDbNotFound));
+        // 自动创建空数据库 + 应用 migrations。
+        // Web UI 可在零数据状态下展示「请 import 题库」的引导页，
+        // 比直接报错退出更友好（也方便 CI smoke 测）。
+        spdlog::info("数据库不存在，将在 {} 创建空库", db_path.string());
+        std::error_code ec;
+        std::filesystem::create_directories(db_path.parent_path(), ec);
+        if (ec) {
+            std::cerr << "Error: 无法创建数据目录 " << db_path.parent_path()
+                      << ": " << ec.message() << "\n";
+            return to_exit_code(static_cast<int>(E::kFileNotFound));
+        }
     }
 
     auto db_r = db::Database::open(db_path);
