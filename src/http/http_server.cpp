@@ -8,6 +8,7 @@
 #include "db/card_dao.h"
 #include "db/chapter_dao.h"
 #include "db/topic_dao.h"
+#include "http/embedded_assets.h"
 #include "http/json_io.h"
 #include "service/review_service.h"
 
@@ -41,6 +42,13 @@ int HttpServer::run() {
     install_middleware();
     register_routes();
 
+    if (embedded_asset_count() > 0) {
+        spdlog::info("Embedded Web UI: {} assets",
+            embedded_asset_count());
+    } else {
+        spdlog::warn("Embedded Web UI: not bundled "
+                     "(run 'cd web && npm run build' before cmake)");
+    }
     spdlog::info("bagu serve listening on http://{}:{}", opts_.bind, opts_.port);
     if (opts_.bind == "0.0.0.0") {
         spdlog::warn("绑定到 0.0.0.0：同网络的其他设备可访问。"
@@ -98,14 +106,41 @@ void HttpServer::install_middleware() {
             send_error(res, E::kInternal, "内部错误", what);
         });
 
-    // ===== 404 =====
+    // ===== 404：API 路径 → JSON；其他路径 → 嵌入资源 fallback =====
     svr_.set_error_handler(
         [](const httplib::Request& req, httplib::Response& res) {
-            if (res.status == 404 && res.body.empty()) {
+            if (res.status != 404 || !res.body.empty()) return;
+
+            // API 路径 → JSON 错误
+            if (req.path.rfind("/api/", 0) == 0) {
                 json j = error_to_json(
                     Error{E::kNotImplemented, "Not Found", "path=" + req.path});
                 res.set_content(j.dump(), "application/json; charset=utf-8");
+                return;
             }
+
+            // 静态资源 fallback：先精确匹配，否则 SPA → /index.html
+            std::string path = req.path == "/" ? "/index.html" : req.path;
+            const auto* asset = lookup_embedded_asset(path);
+            if (!asset) {
+                // SPA 路由（/topics/xxx, /search 等）→ 返回 index.html
+                asset = lookup_embedded_asset("/index.html");
+            }
+            if (asset) {
+                res.status = 200;
+                res.set_content(
+                    reinterpret_cast<const char*>(asset->data),
+                    asset->size,
+                    asset->mime);
+                return;
+            }
+
+            // 没有嵌入资源（开发环境编译时未 build 前端）
+            json j = error_to_json(
+                Error{E::kNotImplemented, "Not Found",
+                      "Web UI not bundled. Run 'cd web && npm run build' "
+                      "and rebuild bagu, or use --dev mode."});
+            res.set_content(j.dump(), "application/json; charset=utf-8");
         });
 
     // ===== CORS（仅 dev 模式放宽） =====

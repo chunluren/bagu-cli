@@ -13,6 +13,72 @@
 
 ---
 
+## [0.3.0] - 2026-05-03
+
+**Web UI MVP**：把 CLI 工具变成跨设备应用。
+
+### Added
+
+#### `bagu serve` — 嵌入式 HTTP server
+- 单进程提供 REST API + 前端 SPA（资源编译期内嵌到二进制）
+- 选项：`--bind` / `--port` / `--token` / `--dev`
+- 默认 `127.0.0.1:8780`（仅本机），可选 `--bind 0.0.0.0` + `--token` 局域网访问
+- SIGINT/SIGTERM 优雅退出
+- 基于 cpp-httplib v0.18.5
+
+#### REST API
+- `GET /api/health` / `GET /api/version`
+- `GET /api/topics` / `GET /api/topics/:name`
+- `GET /api/cards/:id` / `GET /api/cards?topic=`
+- `GET /api/search?q=&topic=&limit=`
+- `GET /api/review/due?topic=&max_due=&max_new=`
+- `POST /api/review/:id/grade { score, duration_ms }`
+- 标准错误响应：`{ "error": { "code", "message", "detail" } }`
+- 错误码映射 HTTP 状态：4020/4021 → 404, 2xxx → 400, 5xxx → 502
+
+#### Web 前端（React 18 + TypeScript + Tailwind 3 + Vite）
+- 4 页：HomePage / TopicPage / CardPage / SearchPage / ReviewPage
+- `<MarkdownRenderer>` — marked + highlight.js（仅注册 14 种常见语言）
+- `<ScoreButtons>` — 0-5 评分按钮 + 键盘快捷键
+- `<ReviewPage>` — 完整 SM-2 复习会话
+  - 进度条 / NEW 标记 / 已答对统计
+  - SPACE/Enter 揭示答案
+  - 评分后显示 'next in N days · ease X.XX'
+  - 完成总结页
+- 暗色模式跟随系统
+- 移动端友好（响应式 + 触屏大按钮）
+- 总 bundle：380 KB（gzip 约 120 KB，达成 PRD < 300 KB 目标）
+
+#### 资源嵌入
+- `scripts/gen_embedded_assets.cmake` — 把 `web/dist` 转 C++ unsigned char[]
+- `src/http/embedded_assets.h` + 自动生成的 `.cpp`
+- HttpServer 404 fallback：精确匹配 → SPA 路由（fallback `/index.html`）
+- 单进程 `bagu serve` 即可，**无需任何静态文件部署**
+
+### 文档
+- `docs/product/PRD-web-ui.md` — Web UI 需求
+- `docs/architecture/web-ui-overview.md` — 架构设计
+- `docs/architecture/http-api-spec.md` — API 规范
+- `docs/architecture/adr/0004-add-http-server-mode.md`
+- `docs/architecture/adr/0005-choose-cpp-httplib.md`
+- `docs/architecture/adr/0006-frontend-stack-vite-react.md`
+- `docs/planning/web-ui-roadmap.md` — 9 sprint 实施计划
+
+### 测试
+- 16 个新增 HTTP server 单测（含 review 5 个）
+- 共 135 个单测，100% 通过
+
+### Performance
+- 单二进制：39 MB（含 React/marked/highlight.js）
+- 启动 < 100ms
+- API 响应 < 5ms（同 CLI 性能）
+- bundle 首屏 < 500ms
+
+### Stack
+基础（v0.2 已有）+ cpp-httplib v0.18.5 + React 18 + Tailwind 3 + Vite + marked + highlight.js + lucide-react + react-router-dom
+
+---
+
 ## [0.2.1] - 2026-04-30
 
 代码评审反馈修复版。功能未变。

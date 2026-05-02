@@ -5,8 +5,8 @@
 [![CI](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/chunluren/bagu-cli/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![Tests](https://img.shields.io/badge/tests-115%20passed-brightgreen.svg)](#)
-[![Version](https://img.shields.io/badge/version-v0.2.0-blue.svg)](https://github.com/chunluren/bagu-cli/releases/tag/v0.2.0)
+[![Tests](https://img.shields.io/badge/tests-135%20passed-brightgreen.svg)](#)
+[![Version](https://img.shields.io/badge/version-v0.3.0-blue.svg)](https://github.com/chunluren/bagu-cli/releases/tag/v0.3.0)
 
 ---
 
@@ -20,6 +20,7 @@
 - **TUI 交互** — FTXUI 全屏复习界面，按键评分（0-5）
 - **AI 模拟面试** — 调用 OpenAI / Claude / Ollama 出题 + 评分（流式 SSE）
 - **学习统计** — 连续打卡 / 各主题进度 / 薄弱排行 / Unicode 热力图
+- **Web UI** — `bagu serve` 启动单进程 HTTP server，桌面/手机浏览器即可访问（v0.3 新增）
 - **本地优先** — 数据全部本地 SQLite，不上传
 
 ---
@@ -129,7 +130,21 @@ $ bagu interview --topic mysql -n 3
        ✗ 缺漏：未说明 RC 与 RR 下 Read View 生成时机的差异
        💡 建议：补充快照读 vs 当前读对比
 
-# 9. 学习统计（含 unicode 热力图）
+# 9. 启动 Web UI（v0.3 新增，单进程含前端）
+$ bagu serve
+[2026-05-03 21:40] Embedded Web UI: 5 assets
+[2026-05-03 21:40] bagu serve listening on http://127.0.0.1:8780
+# 浏览器打开 http://localhost:8780
+# - 主题列表 / 章节树 / 卡片详情（marked + 代码高亮）
+# - 即时搜索（debounced + 关键词高亮）
+# - 复习页（键盘 0-5 评分 + 移动端触屏 + 进度条 + 完成总结）
+
+# 局域网手机访问（家庭 WiFi）：
+$ bagu serve --bind 0.0.0.0 --token mySecret
+# 手机浏览器：http://<电脑 IP>:8780
+# 请求需带：Authorization: Bearer mySecret
+
+# 10. 学习统计（含 unicode 热力图）
 $ bagu stats --heatmap
 
 ========== 总览 ==========
@@ -216,6 +231,7 @@ sudo cmake --install . --prefix /usr/local
 | `bagu review [--topic T] [-n N] [--new-only] [--all]` | 进入复习 TUI |
 | `bagu interview --topic T [-n N] [--provider P] [--model M]` | AI 模拟面试 |
 | `bagu stats [--heatmap] [--days N]` | 学习统计 + 热力图 |
+| `bagu serve [--port 8780] [--bind] [--token]` | 启动 Web UI（单进程含前端）|
 | `bagu config get <key>` / `set <key> <value>` / `list` | 配置管理 |
 | `bagu --version` / `--help` | 版本与帮助 |
 
@@ -304,8 +320,9 @@ sudo cmake --install . --prefix /usr/local
 ## 路线图
 
 - ✅ **v0.1.0**（2026-04） — MVP：init/import/list/search/show/review + SM-2 + FTXUI
-- ✅ **v0.2.0**（2026-04，当前）— `bagu interview` AI 模拟面试 + `bagu stats` 学习统计 + 热力图
-- ⏳ **v0.3.0** — 性能优化、覆盖率 ≥ 85%、e2e 测试套件
+- ✅ **v0.2.0**（2026-04） — `bagu interview` AI 模拟面试 + `bagu stats` 学习统计 + 热力图
+- ✅ **v0.3.0**（2026-05，当前）— `bagu serve` Web UI（单进程含 React 前端）
+- ⏳ **v0.4.0** — Web UI AI 面试页（SSE 流式）+ 统计页 + 热力图 + PWA
 - ⏳ **v1.0.0** — 完整 CI matrix、Homebrew formula、Debian package
 
 详见 [Roadmap](./docs/planning/roadmap.md)。

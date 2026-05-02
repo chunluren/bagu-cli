@@ -49,6 +49,38 @@ if(SQLite3_FOUND AND CURL_FOUND)
     )
 endif()
 
+# ===== 嵌入式 Web 资源（v0.3+）=====
+# 当 web/dist 存在时自动嵌入；否则用 stub（serve 时返回 404）
+set(WEB_DIST_DIR ${CMAKE_SOURCE_DIR}/web/dist)
+set(EMBEDDED_ASSETS_FILE ${CMAKE_BINARY_DIR}/embedded_assets.cpp)
+
+if(EXISTS ${WEB_DIST_DIR} AND EXISTS ${WEB_DIST_DIR}/index.html)
+    file(GLOB_RECURSE WEB_ASSET_FILES ${WEB_DIST_DIR}/*)
+    add_custom_command(
+        OUTPUT ${EMBEDDED_ASSETS_FILE}
+        COMMAND ${CMAKE_COMMAND}
+            -DDIR=${WEB_DIST_DIR}
+            -DOUT=${EMBEDDED_ASSETS_FILE}
+            -P ${CMAKE_SOURCE_DIR}/scripts/gen_embedded_assets.cmake
+        DEPENDS ${WEB_ASSET_FILES} ${CMAKE_SOURCE_DIR}/scripts/gen_embedded_assets.cmake
+        COMMENT "Generating embedded web assets"
+        VERBATIM
+    )
+    message(STATUS "Web UI: embedding from ${WEB_DIST_DIR}")
+else()
+    # Stub：empty asset table
+    file(WRITE ${EMBEDDED_ASSETS_FILE}
+        "// AUTO-GENERATED stub (web/dist not found, run 'cd web && npm run build')\n"
+        "#include \"http/embedded_assets.h\"\n"
+        "namespace bagu::http {\n"
+        "const EmbeddedAsset* lookup_embedded_asset(std::string_view) { return nullptr; }\n"
+        "size_t embedded_asset_count() { return 0; }\n"
+        "}\n")
+    message(STATUS "Web UI: not built yet (run 'cd web && npm run build')")
+endif()
+
+list(APPEND BAGU_LIB_SOURCES ${EMBEDDED_ASSETS_FILE})
+
 add_library(bagu_lib STATIC ${BAGU_LIB_SOURCES})
 
 target_include_directories(bagu_lib
