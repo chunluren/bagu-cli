@@ -9,6 +9,28 @@
 
 ## [Unreleased]
 
+（暂无变更）
+
+---
+
+## [1.0.0] - 2026-05-03
+
+**首个稳定版**：到此为止 bagu-cli 已具备生产级品质 — Web UI 完善、跨平台分发、e2e 覆盖、用户手册完整。
+
+### Highlights
+
+- 🍺 **Homebrew 安装**：`brew tap chunluren/bagu && brew install bagu-cli`
+- 🌐 **跨平台二进制**：macOS Apple Silicon + Linux x86_64（自动嵌入 Web UI）
+- ✅ **192 自动化测试**：171 C++ 单测 + 21 Playwright e2e
+- 🚀 **CI matrix 5 组合**：ubuntu-22/24 × gcc/clang + macos-14
+- 📖 **完整用户手册**：6 篇 docs/user-guide/
+- 🔄 **零数据 serve**：`bagu serve` 在空数据库下也能跑（自动初始化）
+
+### 与 v0.4.0 的差异
+
+v1.0.0 = v0.4.0 + Homebrew tap 发布 + Playwright e2e + 文档完善。
+代码层面无破坏性变更；二进制行为与 v0.4.0 一致。
+
 ### Added — Homebrew tap
 
 - 仓库 `chunluren/bagu-cli` 由 private 改 public
@@ -395,7 +417,8 @@ C++20 · CMake · SQLite3 + FTS5 · CLI11 · FTXUI · toml++ · libcurl · OpenS
 
 ---
 
-[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...v1.0.0
 [0.4.0]: https://github.com/chunluren/bagu-cli/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/chunluren/bagu-cli/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/chunluren/bagu-cli/compare/v0.2.0...v0.2.1

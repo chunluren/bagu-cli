@@ -1,8 +1,11 @@
 # 产品路线图（Roadmap）
 
 > **状态**：Approved
-> **更新**：2026-04-29
-> **下次 review**：2026-05-31
+> **更新**：2026-05-03（v1.0 已发）
+> **下次 review**：2026-07-01
+
+> ✅ **v1.0.0 已发布**（2026-05-03）— Homebrew tap / 192 测试 / 5 平台 CI / 完整用户手册。
+> 接下来重心转向 v1.x 用户体验扩展。
 
 ---
 
@@ -71,18 +74,23 @@ v1.0                                                            ●
 - 搜索 < 100ms
 - 导入 1000 cards/s
 
-### v1.0.0 — 公开发布（目标 2026-06-30）
+### v1.0.0 — 公开发布 ✅ 2026-05-03（提前 ~2 个月）
 
 **主题：** 让别人能用
 
-**功能：**
-- ✅ 完整 README + 截图 + GIF
-- ✅ Homebrew formula
-- ✅ Debian package
-- ✅ GitHub Actions release pipeline
-- ✅ CHANGELOG 规范
-- ✅ CONTRIBUTING / CODE_OF_CONDUCT
-- ✅ Issue / PR 模板
+**已交付：**
+- ✅ README + 用户手册 6 篇
+- ✅ Homebrew tap（`chunluren/homebrew-bagu`）
+- ✅ GitHub Actions release pipeline（matrix: linux-x86_64 + macos-arm64）
+- ✅ CHANGELOG 规范（Keep a Changelog）
+- ✅ CI 5 组合：ubuntu-22/24 × gcc/clang + macos-14
+- ✅ 192 自动化测试（171 单测 + 21 e2e）
+- ✅ HTTP server 多线程并发安全（FULLMUTEX）
+
+**未交付（推迟到 v1.x）：**
+- Debian package（影响小，下次再做）
+- CONTRIBUTING.md / CODE_OF_CONDUCT / Issue 模板（项目主要单人维护，按需补）
+- 截图 / GIF（README 文字够用；后续 hackernews 投放再做）
 
 **发布渠道：**
 - GitHub Release
