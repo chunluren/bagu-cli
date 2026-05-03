@@ -3,6 +3,7 @@ set(BAGU_LIB_SOURCES
     util/path.cpp
     util/hash.cpp
     util/notify.cpp
+    util/network.cpp
     cli/init_cmd.cpp
     cli/config_cmd.cpp
     parser/markdown_parser.cpp

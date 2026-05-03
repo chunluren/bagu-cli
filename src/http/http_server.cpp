@@ -13,6 +13,7 @@
 #include "service/export_service.h"
 #include "service/review_service.h"
 #include "service/stats_service.h"
+#include "util/network.h"
 
 #ifdef BAGU_HAVE_CURL
 #include "http/interview_routes.h"
@@ -60,6 +61,14 @@ int HttpServer::run() {
     if (opts_.bind == "0.0.0.0") {
         spdlog::warn("绑定到 0.0.0.0：同网络的其他设备可访问。"
                      "建议配合 --token 启用鉴权。");
+        // 顺便列出本机所有 LAN IP，便于手机直接 copy URL
+        auto ips = util::local_ipv4_addresses();
+        if (!ips.empty()) {
+            spdlog::info("可访问 URL（同 WiFi 内的其他设备）：");
+            for (const auto& ip : ips) {
+                spdlog::info("  http://{}:{}", ip, opts_.port);
+            }
+        }
     }
     if (!opts_.token.empty()) {
         spdlog::info("Bearer token 鉴权已启用");

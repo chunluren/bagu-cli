@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Lightbulb } from 'lucide-react';
 
 import { api } from '../api/client';
-import type { SearchResult } from '../api/types';
+import type { SearchResult, Topic } from '../api/types';
+import { useApi } from '../hooks/useApi';
 
 function highlight(text: string, kw: string): ReactElement {
   if (!kw) return <>{text}</>;
@@ -36,12 +37,19 @@ function snippet(text: string, kw: string, max = 120): string {
   return (start > 0 ? '...' : '') + cleaned.slice(start, end) + (end < cleaned.length ? '...' : '');
 }
 
+// 一些常见搜索示例，初次访问时引导
+const EXAMPLE_QUERIES = [
+  'MVCC', 'epoll', 'B+ 树', '隔离级别', 'Redis 持久化',
+  '哈希表', '虚函数', '锁', '事务', '索引下推',
+];
+
 export function SearchPage() {
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   const [result, setResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const topics = useApi<Topic[]>(() => api.get('/api/topics'));
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(q.trim()), 250);
@@ -119,6 +127,36 @@ export function SearchPage() {
 
       {!loading && !error && !result && q && (
         <p className="text-slate-500 text-sm">输入关键词后开始搜索...</p>
+      )}
+
+      {/* 初次访问 — 没输入任何内容时显示引导 */}
+      {!loading && !error && !result && !q && (
+        <div className="text-sm space-y-4">
+          {topics.data && topics.data.length > 0 && (
+            <div className="flex items-start gap-2 text-slate-500">
+              <Lightbulb size={14} className="mt-0.5 flex-shrink-0 text-amber-500" />
+              <div>
+                共 {topics.data.length} 个主题，
+                {topics.data.reduce((s, t) => s + (t.cards ?? 0), 0)} 张卡片可搜。
+                FTS5 全文索引，毫秒级响应。
+              </div>
+            </div>
+          )}
+          <div>
+            <div className="text-xs text-slate-400 mb-2">试试这些：</div>
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLE_QUERIES.map((ex) => (
+                <button
+                  key={ex}
+                  onClick={() => setQ(ex)}
+                  className="px-2.5 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-full hover:border-bagu-accent hover:text-bagu-accent transition"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

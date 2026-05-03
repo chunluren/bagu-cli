@@ -54,6 +54,12 @@ int run_serve(const ServeOptions& opts) {
         return to_exit_code(m.error().code);
     }
 
+    // serve 是常驻进程：info 级别更合适（启动 banner / access log）。
+    // 已显式 --verbose 设成 debug 的话不动。
+    if (spdlog::get_level() > spdlog::level::info) {
+        spdlog::set_level(spdlog::level::info);
+    }
+
     http::ServerOptions sopts;
     sopts.bind = opts.bind;
     sopts.port = opts.port;

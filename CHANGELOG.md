@@ -9,7 +9,16 @@
 
 ## [Unreleased]
 
-（暂无变更）
+### Added — UX 小优化
+
+- **`bagu serve` 启动打印 LAN IP**：当 `--bind 0.0.0.0` 时枚举本机 IPv4，
+  打印「可访问 URL」列表，方便手机直接复制（自动跳过 lo/docker/veth/Clash fakeIP 198.18.x.x）。
+  顺手把 `serve` 的默认日志级别从 warn 升到 info，让启动 banner / 嵌入资源数 / access log 都可见
+- **`SearchPage` 初始空态**：访问 `/search` 还没输入时显示「N 主题 M 卡片」
+  + 10 个常见关键词标签（MVCC / epoll / B+ 树 ...），点一下就触发搜索
+- 新增 `src/util/network.{h,cpp}` — `local_ipv4_addresses()` 跨 Linux/macOS
+
+199 单测 + 25 e2e 全过；嵌入资源 12 个不变。
 
 ---
 
