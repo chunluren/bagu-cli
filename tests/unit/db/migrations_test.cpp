@@ -15,7 +15,7 @@ TEST(Migrations, RegisterAndApply_AllTablesCreated) {
     auto m = db.migrate();
     ASSERT_TRUE(m.is_ok()) << m.error().message << " | " << m.error().detail;
 
-    EXPECT_EQ(db.schema_version(), 3);
+    EXPECT_EQ(db.schema_version(), 4);
 
     // 验证关键表存在
     for (const auto& table : {"topic", "chapter", "card", "review",

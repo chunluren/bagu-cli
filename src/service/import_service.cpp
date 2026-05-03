@@ -2,9 +2,12 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <ctime>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "db/card_dao.h"
 #include "db/chapter_dao.h"
@@ -44,6 +47,38 @@ std::vector<fs::path> collect_md_files(const fs::path& root) {
     }
     std::sort(out.begin(), out.end());
     return out;
+}
+
+/// 把题面归一化为可哈希的稳定串：
+/// - 去前后空白
+/// - 内部连续空白合并为单空格
+/// - lower-case（ASCII 范围；中文不变）
+/// - 转义换行
+std::string normalize_question(const std::string& q) {
+    std::string out;
+    out.reserve(q.size());
+    bool last_was_space = true;  // 初始 true 让前导空白被吃掉
+    for (char c : q) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (uc <= 0x20 || uc == '\t' || uc == '\n' || uc == '\r') {
+            if (!last_was_space) { out.push_back(' '); last_was_space = true; }
+        } else {
+            // ASCII 字母小写
+            if (uc >= 'A' && uc <= 'Z') uc = static_cast<unsigned char>(uc + 32);
+            out.push_back(static_cast<char>(uc));
+            last_was_space = false;
+        }
+    }
+    if (!out.empty() && out.back() == ' ') out.pop_back();
+    return out;
+}
+
+/// stable_key = sha256(topic_name + "::" + normalized_question)[:32]
+std::string compute_stable_key(const std::string& topic_name,
+                              const std::string& question) {
+    std::string seed = topic_name + "::" + normalize_question(question);
+    auto hex = util::sha256(seed);
+    return hex.substr(0, 32);
 }
 
 }  // namespace
@@ -122,7 +157,7 @@ FileImportResult ImportService::import_file(const fs::path& path, const Options&
         return result;
     }
 
-    // 4. 事务：先清旧数据，再写新数据
+    // 4. 事务：upsert topic / chapter / card
     auto txn = db_.begin();
 
     int64_t ts = now_ts();
@@ -144,30 +179,16 @@ FileImportResult ImportService::import_file(const fs::path& path, const Options&
     } else {
         topic_id = existing_r.value()->id;
         topic.id = topic_id;
-        // 删旧的章节和卡片（用 prepared statement，与 DAO 层保持一致）
-        {
-            auto stmt = db_.prepare("DELETE FROM chapter WHERE topic_id = ?");
-            if (!stmt) {
-                result.error = "prepare DELETE chapter failed";
-                return result;
-            }
-            stmt.bind(1, topic_id);
-            if (stmt.execute() < 0) {
-                result.error = "DELETE chapter failed";
-                return result;
-            }
+        // 章节全删重建（章节没有复习状态可丢；保持简单）
+        auto stmt = db_.prepare("DELETE FROM chapter WHERE topic_id = ?");
+        if (!stmt) {
+            result.error = "prepare DELETE chapter failed";
+            return result;
         }
-        {
-            auto stmt = db_.prepare("DELETE FROM card WHERE topic_id = ?");
-            if (!stmt) {
-                result.error = "prepare DELETE card failed";
-                return result;
-            }
-            stmt.bind(1, topic_id);
-            if (stmt.execute() < 0) {
-                result.error = "DELETE card failed";
-                return result;
-            }
+        stmt.bind(1, topic_id);
+        if (stmt.execute() < 0) {
+            result.error = "DELETE chapter failed";
+            return result;
         }
         auto upd = topic_dao.update(topic);
         if (upd.is_err()) {
@@ -195,15 +216,55 @@ FileImportResult ImportService::import_file(const fs::path& path, const Options&
             result.error = cr.error().message;
             return result;
         }
-        // ## 顶级章节才进映射（### 不参与 card 归属）
         if (pc.level == 2) {
             chapter_no_to_id[pc.chapter_no] = cr.value();
         }
         result.chapters_added++;
     }
 
-    // 6. 写卡片
+    // 6a. 一次性 backfill：把本 topic 下 stable_key=NULL 的旧卡（v3→v4 升级遗留）
+    //     按当前 question 文本计算并填入；之后 upsert 才能匹配上、保留历史
+    {
+        auto sel = db_.prepare(
+            "SELECT id, question FROM card "
+            "WHERE topic_id = ? AND (stable_key IS NULL OR stable_key = '')");
+        if (!sel) {
+            result.error = "prepare backfill select failed";
+            return result;
+        }
+        sel.bind(1, topic_id);
+        std::vector<std::pair<int64_t, std::string>> rows;
+        while (sel.step()) {
+            rows.emplace_back(sel.column_int64(0), sel.column_text(1));
+        }
+        if (!rows.empty()) {
+            auto upd = db_.prepare("UPDATE card SET stable_key = ? WHERE id = ?");
+            if (!upd) {
+                result.error = "prepare backfill update failed";
+                return result;
+            }
+            for (const auto& [id, q] : rows) {
+                upd.reset();
+                upd.bind(1, compute_stable_key(doc.topic_name, q));
+                upd.bind(2, id);
+                if (upd.execute() < 0) {
+                    result.error = "backfill update failed";
+                    return result;
+                }
+            }
+            spdlog::info("backfilled stable_key for {} legacy cards in topic={}",
+                rows.size(), doc.topic_name);
+        }
+    }
+
+    // 6b. 卡片：upsert by stable_key（保留 review 历史），最后清掉本次没出现的
     db::CardDao card_dao(db_);
+    std::vector<std::string> seen_keys;
+    seen_keys.reserve(doc.cards.size());
+
+    // 检测同一 topic 内题面冲突（不同卡片归一化后一样）
+    std::unordered_set<std::string> in_doc_keys;
+
     for (const auto& pc : doc.cards) {
         db::Card c;
         c.topic_id = topic_id;
@@ -217,13 +278,35 @@ FileImportResult ImportService::import_file(const fs::path& path, const Options&
         c.card_type = pc.card_type;
         c.created_at = ts;
         c.updated_at = ts;
+        c.stable_key = compute_stable_key(doc.topic_name, pc.question);
 
-        auto cr = card_dao.insert(c);
+        // 同一文档内重复的题面：只保留第一条
+        if (!in_doc_keys.insert(c.stable_key).second) {
+            spdlog::warn("duplicate question in same doc, skipping: '{}'",
+                pc.question.substr(0, 40));
+            continue;
+        }
+
+        auto cr = card_dao.upsert_by_stable_key(c);
         if (cr.is_err()) {
             result.error = cr.error().message;
             return result;
         }
+        seen_keys.push_back(c.stable_key);
         result.cards_added++;
+    }
+
+    // 7. 删除本次没出现的卡（stale 卡）—— FK ON DELETE CASCADE 会清 review 历史
+    if (!is_new) {
+        auto del_r = card_dao.delete_topic_cards_not_in(topic_id, seen_keys);
+        if (del_r.is_err()) {
+            result.error = del_r.error().message;
+            return result;
+        }
+        if (del_r.value() > 0) {
+            spdlog::info("re-import {}: pruned {} stale cards (history lost)",
+                doc.topic_name, del_r.value());
+        }
     }
 
     auto cm = txn.commit();

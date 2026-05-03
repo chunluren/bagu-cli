@@ -9,6 +9,30 @@
 
 ## [Unreleased]
 
+### Fixed — 重导入保留 SM-2 复习历史（v1.1）
+
+#### 背景
+之前 `bagu import --force` 或文件内容变化时会 `DELETE FROM card WHERE topic_id = ?` 全删重建，
+ON DELETE CASCADE 顺手把 `review` 和 `review_history` 也清了 — 修个错别字 = 丢全部艾宾浩斯进度。
+
+#### 修复
+- Schema migration v4：`card` 加 `stable_key TEXT UNIQUE` 列
+- `stable_key = sha256(topic_name + "::" + normalized_question)[:32]`
+  - 题面归一化：trim + 内部空白合并为单空格 + ASCII 小写
+- `import_service` 改为 upsert：
+  - 旧 DB 升级首次 re-import：先按当前 question 文本回填 `stable_key`
+  - 然后 `card_dao.upsert_by_stable_key` — 匹配 → UPDATE（保留 id + review 历史），不匹配 → INSERT
+  - 最后删除本次没出现的 stale 卡（用临时表传 keep_keys）
+- 同一文档内题面归一化后冲突的 → 跳过后面的 + warning
+
+#### 测试
+- `ReImport_SameQuestion_PreservesIdAndReviewHistory` — 改答案 + 加新卡，旧卡 id + review + history 全保留
+- `ReImport_DroppedQuestion_RemovesCardAndHistory` — 题被删则 CASCADE 清理
+- `LegacyCards_NullStableKey_Backfilled_HistoryPreserved` — v3→v4 升级路径
+- `NormalizeQuestion_WhitespaceInsensitive` — 空白 / TAB 不影响匹配
+- `FirstImport_AssignsStableKey` — 新卡都有 32 字符 stable_key
+- 共 182 单测，100% 通过；e2e schema_version 断言同步更新到 4
+
 ### Added — Anki 导出（v1.1 起步）
 
 #### 新接口

@@ -106,6 +106,22 @@ END;
 )SQL";
 
 // ============================================================================
+// 0004 — card.stable_key（重导入保留 review 历史）
+//
+// stable_key = sha256(topic_name + "::" + normalized_question)[:32]
+// normalize: trim + 内部多空白合并为 1 + lower
+//
+// migration 自身只负责加列 + 索引；填值在 ImportService 第一次跑时按 LRU 补。
+// 已存在的 review/review_history FK ON DELETE CASCADE 不变，
+// upsert 路径只触发 UPDATE，不删除，CASCADE 不会丢历史。
+// ============================================================================
+constexpr const char* kMigration0004 = R"SQL(
+ALTER TABLE card ADD COLUMN stable_key TEXT;
+CREATE UNIQUE INDEX idx_card_stable_key ON card(stable_key)
+    WHERE stable_key IS NOT NULL;
+)SQL";
+
+// ============================================================================
 // 0003 — interview 会话表
 // ============================================================================
 constexpr const char* kMigration0003 = R"SQL(
@@ -143,6 +159,8 @@ void register_all_migrations(Database& db) {
         kMigration0002);
     db.register_migration(3, "interview_session + interview_qa",
         kMigration0003);
+    db.register_migration(4, "card.stable_key for re-import history preservation",
+        kMigration0004);
 }
 
 }  // namespace bagu::db

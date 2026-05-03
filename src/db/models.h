@@ -39,6 +39,10 @@ struct Card {
     std::string card_type = "qa";   // 'qa' / 'section' / 'code'
     int64_t created_at = 0;
     int64_t updated_at = 0;
+
+    /// 稳定键（schema v4+）= sha256(topic_name + "::" + normalized_question)[:32]
+    /// 用于重导入时按问题文本匹配，不丢 review 历史
+    std::string stable_key;
 };
 
 }  // namespace bagu::db

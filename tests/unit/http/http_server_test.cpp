@@ -72,7 +72,7 @@ TEST_F(HttpServerTest, Health_ReturnsOk) {
     EXPECT_EQ(r->status, 200);
     auto j = json::parse(r->body);
     EXPECT_EQ(j["ok"], true);
-    EXPECT_EQ(j["schema_version"], 3);
+    EXPECT_EQ(j["schema_version"], 4);
 }
 
 TEST_F(HttpServerTest, Version_ReturnsString) {

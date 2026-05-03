@@ -28,6 +28,6 @@ test.describe('Health API', () => {
     const j = await res.json();
     expect(j.ok).toBe(true);
     expect(j.version).toBeDefined();
-    expect(j.schema_version).toBe(3);
+    expect(j.schema_version).toBe(4);
   });
 });
