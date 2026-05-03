@@ -10,6 +10,7 @@
 #include "db/topic_dao.h"
 #include "http/embedded_assets.h"
 #include "http/json_io.h"
+#include "service/export_service.h"
 #include "service/review_service.h"
 #include "service/stats_service.h"
 
@@ -169,6 +170,7 @@ void HttpServer::register_routes() {
     register_search_routes();
     register_review_routes();
     register_stats_routes();
+    register_export_routes();
 #ifdef BAGU_HAVE_CURL
     register_interview_routes(svr_, db_);
 #endif
@@ -513,6 +515,38 @@ void HttpServer::register_stats_routes() {
                 });
             }
             send_json(res, 200, json{{"items", arr}});
+        });
+}
+
+// ============================================================================
+// /api/export/anki — 流式输出 Anki txt
+// ============================================================================
+void HttpServer::register_export_routes() {
+    svr_.Get("/api/export/anki",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            service::AnkiExportOptions opts;
+            opts.topic = req.get_param_value("topic");
+            opts.include_section_cards =
+                req.get_param_value("include_section") == "1";
+
+            // 先生成到 stringstream（cards 总数有限，内存可承）
+            // 同时拿到 summary 写到响应头
+            std::ostringstream buf;
+            auto r = service::ExportService(db_).export_anki(opts, buf);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+
+            res.status = 200;
+            // 提供下载文件名
+            std::string filename = "bagu-anki";
+            if (!opts.topic.empty()) filename += "-" + opts.topic;
+            filename += ".txt";
+            res.set_header("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"");
+            res.set_header("X-Bagu-Export-Total",
+                std::to_string(r.value().total_cards));
+            res.set_header("X-Bagu-Export-Written",
+                std::to_string(r.value().written));
+            res.set_content(buf.str(), "text/plain; charset=utf-8");
         });
 }
 

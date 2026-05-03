@@ -31,6 +31,7 @@ if(SQLite3_FOUND)
         service/import_service.cpp
         service/review_service.cpp
         service/stats_service.cpp
+        service/export_service.cpp
         tui/review_screen.cpp
         http/http_server.cpp
         cli/import_cmd.cpp
@@ -40,6 +41,7 @@ if(SQLite3_FOUND)
         cli/review_cmd.cpp
         cli/stats_cmd.cpp
         cli/serve_cmd.cpp
+        cli/export_cmd.cpp
     )
 endif()
 

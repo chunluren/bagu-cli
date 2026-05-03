@@ -11,6 +11,7 @@
 | [Web UI 指南](./web-ui.md) | `bagu serve` / 局域网 / PWA 安装 |
 | [LLM 接入](./llm-providers.md) | OpenAI / Claude / Ollama / 兼容代理 |
 | [Markdown 格式规范](./markdown-format.md) | 题库文档怎么写才能被识别 |
+| [导出题库](./export.md) | 导出到 Anki / REST API |
 | [常见问题](./faq.md) | 安装 / 数据 / 复习 / 面试 / 性能 / 隐私 |
 
 ## 命令速查
@@ -25,6 +26,7 @@ bagu review [--topic T]        # 终端 TUI 复习
 bagu interview --topic T -n N  # AI 模拟面试
 bagu stats [--heatmap]         # 学习统计
 bagu serve [--bind --port]     # Web UI（含前端）
+bagu export anki [--topic T]   # 导出 Anki txt
 bagu config get/set/list       # 配置管理
 bagu --version / --help
 ```

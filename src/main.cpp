@@ -8,6 +8,7 @@
 
 #include "bagu/version.h"
 #include "cli/config_cmd.h"
+#include "cli/export_cmd.h"
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
 #include "cli/interview_cmd.h"
@@ -99,6 +100,20 @@ int main(int argc, char** argv) {
     cmd_serve->add_option("--token", serve_token, "Bearer 鉴权 token");
     cmd_serve->add_flag("--dev", serve_dev, "开发模式（CORS 放宽）");
 
+    // ===== bagu export =====
+    auto* cmd_export = app.add_subcommand("export",
+        "导出题库（用法：bagu export anki [--topic T] [-o file]）");
+    std::string export_format = "anki";
+    std::string export_topic, export_output;
+    bool export_include_section = false;
+    cmd_export->add_option("format", export_format,
+        "导出格式（目前仅 anki）")->capture_default_str();
+    cmd_export->add_option("--topic", export_topic, "限定主题（默认全部）");
+    cmd_export->add_option("-o,--output", export_output,
+        "输出文件路径（默认 stdout）");
+    cmd_export->add_flag("--include-section", export_include_section,
+        "也导出章节占位卡（默认仅 qa 卡）");
+
     // ===== bagu config =====
     auto* cmd_config = app.add_subcommand("config", "配置管理");
     cmd_config->require_subcommand(1);
@@ -179,6 +194,14 @@ int main(int argc, char** argv) {
         sopts.token = serve_token;
         sopts.dev = serve_dev;
         return bagu::cli::run_serve(sopts);
+    }
+    if (cmd_export->parsed()) {
+        bagu::cli::ExportCliOptions eopts;
+        eopts.format = export_format;
+        eopts.topic = export_topic;
+        eopts.output = export_output;
+        eopts.include_section_cards = export_include_section;
+        return bagu::cli::run_export(eopts);
     }
 
     return 0;

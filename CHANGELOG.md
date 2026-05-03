@@ -9,7 +9,23 @@
 
 ## [Unreleased]
 
-（暂无变更）
+### Added — Anki 导出（v1.1 起步）
+
+#### 新接口
+- CLI：`bagu export anki [--topic T] [-o file] [--include-section]`
+- HTTP：`GET /api/export/anki?topic=&include_section=` 含 `Content-Disposition` + `X-Bagu-Export-Total/Written` 头
+
+#### 实现
+- `src/service/export_service.{h,cpp}` — 流式写 Anki "Notes in Plain Text"
+- 字段处理：TAB → 4 空格、`\n` / `\r\n` → `<br>`
+- Anki 标头：`#separator:tab` / `#html:true` / `#columns:Front\tBack\tTags` / `#tags column:3`
+- Tag 自动加 `bagu <topic>`，原 tags 字段的逗号 / TAB 转空格
+- 默认仅导出 qa 卡，`--include-section` 才带章节占位卡
+
+#### 测试 & 文档
+- 6 个单测：全量 / 按 topic / topic 不存在 / TAB+换行转义 / tags 处理
+- 共 177 单测，100% 通过
+- `docs/user-guide/export.md` — 导出 + Anki 三步导入 + 设计取舍
 
 ---
 
