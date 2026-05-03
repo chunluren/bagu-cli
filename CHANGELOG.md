@@ -9,6 +9,19 @@
 
 ## [Unreleased]
 
+### Added — Web 面试历史页（v1.1）
+
+#### 前端
+- 新页 `/interview/history` — 表格列出最近 50 次面试会话（topic / 时间 / 题数 / 平均分 / 用时 / 模型）
+- 新页 `/interview/sessions/:id` — 单次会话详情，按题号展开 question / user_answer / ai_feedback + 颜色高亮 score
+- `InterviewPage` 设置页底部加「查看历史会话」入口
+- 使用已有 `/api/interview/sessions` + `/api/interview/sessions/:id` 接口（v0.4 Sprint 6 时已实现）
+
+#### 测试
+- `web/e2e/interview-history.spec.ts` 3 个 e2e：空态 CTA / 跳转链接可见 / 不存在的 session id 不白屏
+- 共 24 个 e2e + 182 单测，100% 通过
+- 嵌入资源 12 个不变；前端 bundle JS 42KB → 50KB（+8KB 含两个新页）
+
 ### Fixed — 重导入保留 SM-2 复习历史（v1.1）
 
 #### 背景

@@ -287,6 +287,15 @@ export function InterviewPage() {
           需要先在 <code className="px-1 bg-slate-100 dark:bg-slate-800 rounded">~/.bagu/config.toml</code> 配置
           LLM provider 和 API key 环境变量。
         </p>
+
+        <div className="mt-6 text-center">
+          <Link
+            to="/interview/history"
+            className="text-sm text-slate-500 hover:text-bagu-accent inline-flex items-center gap-1.5"
+          >
+            查看历史会话 →
+          </Link>
+        </div>
       </div>
     );
   }
