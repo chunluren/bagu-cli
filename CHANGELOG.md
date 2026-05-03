@@ -9,6 +9,23 @@
 
 ## [Unreleased]
 
+### Added — CSV 导出 + 卡片 pause/unpause（v1.2.1）
+
+#### CSV 导出
+- `bagu export csv [--topic T] [-o file]` — RFC 4180 格式，Notion / Obsidian / Excel 通吃
+- `GET /api/export/csv?topic=&include_section=` — 同结构 + Content-Disposition + X-Bagu-* 头
+- 字段含 `,` `"` `\n` `\r` 时用双引号包，内部 `"` 转义为 `""`；行尾 `\r\n`
+- 头一行：`id,topic,chapter,question,answer,tags,card_type`
+- 3 个新单测覆盖 全量 / 转义（comma/quote/newline）/ topic 过滤
+
+#### 卡片 pause / unpause
+- `bagu pause <card_id>` 或 `bagu pause --topic <T>` — 单卡或全主题暂停复习
+- `bagu unpause` — 对称恢复
+- `POST /api/review/:id/suspend` body `{"suspended":true|false}` — Web UI 用
+- `ReviewDao::set_suspended(card_id, bool)` 自动 INSERT OR IGNORE 一行 review（处理新卡场景）
+- `ReviewDao::set_suspended_by_topic(topic_id, bool)` 批量 + 返回受影响数
+- 4 个新单测：单卡新建 / 已存在保留其他字段 / 主题批量 / toggle 往返
+
 ### Added — UX 小优化
 
 - **`bagu serve` 启动打印 LAN IP**：当 `--bind 0.0.0.0` 时枚举本机 IPv4，

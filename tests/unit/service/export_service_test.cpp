@@ -119,4 +119,50 @@ TEST_F(ExportServiceTest, TagsContainBaguAndTopicName) {
     EXPECT_NE(s.find("tx index"), std::string::npos);
 }
 
+// ===== CSV =====
+
+TEST_F(ExportServiceTest, CsvAll_HasHeaderAndRows) {
+    std::ostringstream out;
+    CsvExportOptions opts;
+    auto r = ExportService(*db_).export_csv(opts, out);
+    ASSERT_TRUE(r.is_ok());
+    EXPECT_EQ(r.value().written, 3);  // 3 张 qa（mysql 2 + redis 1）
+
+    auto s = out.str();
+    EXPECT_NE(s.find("id,topic,chapter,question,answer,tags,card_type"),
+              std::string::npos);
+    EXPECT_NE(s.find("MVCC?"), std::string::npos);
+    EXPECT_NE(s.find("过期策略?"), std::string::npos);
+}
+
+TEST_F(ExportServiceTest, CsvEscapesCommaAndQuoteAndNewline) {
+    // 直接插入一张含特殊字符的卡
+    (void)db_->execute(
+        "INSERT INTO card (topic_id, question, answer, card_type, tags, "
+        " created_at, updated_at) VALUES "
+        "(2, 'Q with, comma', 'A with \"quote\"\nand LF', 'qa', '', 0, 0)");
+
+    std::ostringstream out;
+    CsvExportOptions opts;
+    opts.topic = "redis";
+    (void)ExportService(*db_).export_csv(opts, out);
+
+    auto s = out.str();
+    // , 应触发引号包
+    EXPECT_NE(s.find("\"Q with, comma\""), std::string::npos);
+    // " 应被双写
+    EXPECT_NE(s.find("\"A with \"\"quote\"\""), std::string::npos);
+    // 行尾是 CRLF（RFC 4180）
+    EXPECT_NE(s.find("\r\n"), std::string::npos);
+}
+
+TEST_F(ExportServiceTest, CsvSpecificTopic_Filter) {
+    std::ostringstream out;
+    CsvExportOptions opts;
+    opts.topic = "redis";
+    auto r = ExportService(*db_).export_csv(opts, out);
+    ASSERT_TRUE(r.is_ok());
+    EXPECT_EQ(r.value().written, 1);
+}
+
 }  // namespace bagu::service

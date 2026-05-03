@@ -73,6 +73,13 @@ public:
     /// 统计未学过的新卡数
     Result<int> count_new(int64_t topic_id);
 
+    /// 设置单卡 suspended（true=暂停 / false=恢复）。
+    /// review 行不存在时会先 insert 一行默认状态再设。
+    Result<void> set_suspended(int64_t card_id, bool suspended);
+
+    /// 批量按 topic 设置（suspended=1 时 topic 全员暂停）。返回受影响数。
+    Result<int> set_suspended_by_topic(int64_t topic_id, bool suspended);
+
 private:
     Database& db_;
 };

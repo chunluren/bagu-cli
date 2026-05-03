@@ -46,6 +46,7 @@ if(SQLite3_FOUND)
         cli/export_cmd.cpp
         cli/due_cmd.cpp
         cli/remind_cmd.cpp
+        cli/pause_cmd.cpp
     )
 endif()
 

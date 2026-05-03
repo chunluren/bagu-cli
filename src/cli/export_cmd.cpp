@@ -12,8 +12,9 @@
 namespace bagu::cli {
 
 int run_export(const ExportCliOptions& opts) {
-    if (opts.format != "anki") {
-        std::cerr << "Error: 暂只支持 --format anki（其他格式 v1.x 计划）\n";
+    if (opts.format != "anki" && opts.format != "csv") {
+        std::cerr << "Error: 不支持的格式: " << opts.format
+                  << "（支持: anki / csv）\n";
         return to_exit_code(static_cast<int>(E::kArgInvalidValue));
     }
 
@@ -37,13 +38,19 @@ int run_export(const ExportCliOptions& opts) {
         return to_exit_code(m.error().code);
     }
 
-    service::AnkiExportOptions sopts;
-    sopts.topic = opts.topic;
-    sopts.include_section_cards = opts.include_section_cards;
     service::ExportService svc(db);
 
     auto write = [&](std::ostream& out) {
-        return svc.export_anki(sopts, out);
+        if (opts.format == "csv") {
+            service::CsvExportOptions copts;
+            copts.topic = opts.topic;
+            copts.include_section_cards = opts.include_section_cards;
+            return svc.export_csv(copts, out);
+        }
+        service::AnkiExportOptions aopts;
+        aopts.topic = opts.topic;
+        aopts.include_section_cards = opts.include_section_cards;
+        return svc.export_anki(aopts, out);
     };
 
     service::AnkiExportSummary sum;
@@ -68,8 +75,8 @@ int run_export(const ExportCliOptions& opts) {
         sum = r.value();
     }
 
-    // 总结写到 stderr，不污染 stdout（方便 `bagu export anki > deck.txt`）
-    std::cerr << "[export anki] total=" << sum.total_cards
+    // 总结写到 stderr，不污染 stdout
+    std::cerr << "[export " << opts.format << "] total=" << sum.total_cards
               << " written=" << sum.written
               << " skipped=" << sum.skipped;
     if (!opts.output.empty()) std::cerr << " → " << opts.output;

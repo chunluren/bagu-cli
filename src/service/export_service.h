@@ -30,6 +30,17 @@ struct AnkiExportSummary {
     int skipped = 0;
 };
 
+/// CSV 导出（Notion / Obsidian / Excel 通用格式）
+///
+/// RFC 4180 兼容：
+///   - 头一行：id,topic,chapter,question,answer,tags,card_type
+///   - 字段含 , " \n 时用双引号包，内部双引号转 ""
+///   - 行尾 CRLF
+struct CsvExportOptions {
+    std::string topic;       // 空 = 全部
+    bool include_section_cards = false;
+};
+
 class ExportService {
 public:
     explicit ExportService(db::Database& db) : db_(db) {}
@@ -37,6 +48,10 @@ public:
     /// 导出 Anki txt 到输出流
     Result<AnkiExportSummary> export_anki(const AnkiExportOptions& opts,
                                           std::ostream& out);
+
+    /// 导出 CSV（RFC 4180）到输出流
+    Result<AnkiExportSummary> export_csv(const CsvExportOptions& opts,
+                                         std::ostream& out);
 
 private:
     db::Database& db_;

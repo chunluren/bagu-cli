@@ -14,6 +14,7 @@
 #include "cli/init_cmd.h"
 #include "cli/interview_cmd.h"
 #include "cli/list_cmd.h"
+#include "cli/pause_cmd.h"
 #include "cli/remind_cmd.h"
 #include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
@@ -108,6 +109,21 @@ int main(int argc, char** argv) {
     auto* cmd_due = app.add_subcommand("due", "今日到期速览");
     std::string due_topic;
     cmd_due->add_option("--topic", due_topic, "限定主题");
+
+    // ===== bagu pause / unpause =====
+    auto* cmd_pause = app.add_subcommand("pause",
+        "暂停指定卡片或整个主题的复习排程（review.suspended=1）");
+    int64_t pause_card = 0;
+    std::string pause_topic;
+    cmd_pause->add_option("card_id", pause_card, "卡片 ID");
+    cmd_pause->add_option("--topic", pause_topic, "暂停整个主题");
+
+    auto* cmd_unpause = app.add_subcommand("unpause",
+        "恢复指定卡片或主题的复习");
+    int64_t unpause_card = 0;
+    std::string unpause_topic;
+    cmd_unpause->add_option("card_id", unpause_card, "卡片 ID");
+    cmd_unpause->add_option("--topic", unpause_topic, "恢复整个主题");
 
     // ===== bagu remind =====
     auto* cmd_remind = app.add_subcommand("remind",
@@ -226,6 +242,20 @@ int main(int argc, char** argv) {
         bagu::cli::DueCliOptions dopts;
         dopts.topic = due_topic;
         return bagu::cli::run_due(dopts);
+    }
+    if (cmd_pause->parsed()) {
+        bagu::cli::PauseCliOptions popts;
+        popts.card_id = pause_card;
+        popts.topic = pause_topic;
+        popts.unpause = false;
+        return bagu::cli::run_pause(popts);
+    }
+    if (cmd_unpause->parsed()) {
+        bagu::cli::PauseCliOptions popts;
+        popts.card_id = unpause_card;
+        popts.topic = unpause_topic;
+        popts.unpause = true;
+        return bagu::cli::run_pause(popts);
     }
     if (cmd_remind->parsed()) {
         bagu::cli::RemindCliOptions ropts;

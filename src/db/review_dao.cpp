@@ -197,4 +197,48 @@ Result<int> ReviewDao::count_new(int64_t topic_id) {
     return stmt.column_int(0);
 }
 
+Result<void> ReviewDao::set_suspended(int64_t card_id, bool suspended) {
+    {
+        auto ins = db_.prepare(
+            "INSERT OR IGNORE INTO review (card_id) VALUES (?)");
+        if (!ins) return make_err(E::kDbPrepareFailed, "prepare insert failed");
+        ins.bind(1, card_id);
+        if (ins.execute() < 0) {
+            return make_err(E::kDbExecuteFailed, "insert review failed");
+        }
+    }
+    auto upd = db_.prepare(
+        "UPDATE review SET suspended = ? WHERE card_id = ?");
+    if (!upd) return make_err(E::kDbPrepareFailed, "prepare update failed");
+    upd.bind(1, suspended ? 1 : 0);
+    upd.bind(2, card_id);
+    if (upd.execute() < 0) {
+        return make_err(E::kDbExecuteFailed, "update suspended failed");
+    }
+    return Result<void>::ok();
+}
+
+Result<int> ReviewDao::set_suspended_by_topic(int64_t topic_id, bool suspended) {
+    {
+        auto ins = db_.prepare(
+            "INSERT OR IGNORE INTO review (card_id) "
+            "SELECT id FROM card WHERE topic_id = ?");
+        if (!ins) return make_err<int>(E::kDbPrepareFailed,
+            "prepare backfill failed");
+        ins.bind(1, topic_id);
+        if (ins.execute() < 0) {
+            return make_err<int>(E::kDbExecuteFailed, "backfill failed");
+        }
+    }
+    auto upd = db_.prepare(
+        "UPDATE review SET suspended = ? "
+        "WHERE card_id IN (SELECT id FROM card WHERE topic_id = ?)");
+    if (!upd) return make_err<int>(E::kDbPrepareFailed, "prepare update failed");
+    upd.bind(1, suspended ? 1 : 0);
+    upd.bind(2, topic_id);
+    int affected = upd.execute();
+    if (affected < 0) return make_err<int>(E::kDbExecuteFailed, "update failed");
+    return affected;
+}
+
 }  // namespace bagu::db

@@ -194,4 +194,58 @@ TEST_F(ReviewServiceTest, DueSummary_RespectsSuspendedFlag) {
     EXPECT_EQ(r.value().total_due, 0);
 }
 
+// ===== set_suspended =====
+
+TEST_F(ReviewServiceTest, SetSuspended_NewCard_CreatesRowAndSets) {
+    db::ReviewDao dao(*db_);
+    // card 没复习过，review 行不存在
+    auto pre = dao.find(card_ids_[0]);
+    ASSERT_TRUE(pre.is_ok());
+    EXPECT_FALSE(pre.value().has_value());
+
+    auto r = dao.set_suspended(card_ids_[0], true);
+    ASSERT_TRUE(r.is_ok());
+
+    auto post = dao.find(card_ids_[0]);
+    ASSERT_TRUE(post.is_ok() && post.value().has_value());
+    EXPECT_TRUE(post.value()->suspended);
+}
+
+TEST_F(ReviewServiceTest, SetSuspended_ExistingCard_PreservesOtherFields) {
+    svc_->submit_review(card_ids_[0], 5, 1234);  // 写一行 review
+    auto before = db::ReviewDao(*db_).find(card_ids_[0]);
+    ASSERT_TRUE(before.value().has_value());
+    int reps_before = before.value()->repetitions;
+
+    auto r = db::ReviewDao(*db_).set_suspended(card_ids_[0], true);
+    ASSERT_TRUE(r.is_ok());
+
+    auto after = db::ReviewDao(*db_).find(card_ids_[0]);
+    ASSERT_TRUE(after.value().has_value());
+    EXPECT_TRUE(after.value()->suspended);
+    EXPECT_EQ(after.value()->repetitions, reps_before);  // 未受影响
+}
+
+TEST_F(ReviewServiceTest, SetSuspendedByTopic_AffectsAllCards) {
+    auto r = db::ReviewDao(*db_).set_suspended_by_topic(topic_id_, true);
+    ASSERT_TRUE(r.is_ok());
+    EXPECT_EQ(r.value(), 3);  // 3 张卡
+
+    // due_summary 现在应当看不到这 3 张
+    auto sum = svc_->due_summary();
+    ASSERT_TRUE(sum.is_ok());
+    EXPECT_EQ(sum.value().total_due, 0);
+    EXPECT_EQ(sum.value().total_new, 0);  // 全 suspended
+}
+
+TEST_F(ReviewServiceTest, SetSuspended_Toggle_Roundtrip) {
+    db::ReviewDao dao(*db_);
+    ASSERT_TRUE(dao.set_suspended(card_ids_[0], true).is_ok());
+    ASSERT_TRUE(dao.set_suspended(card_ids_[0], false).is_ok());
+
+    auto r = dao.find(card_ids_[0]);
+    ASSERT_TRUE(r.value().has_value());
+    EXPECT_FALSE(r.value()->suspended);
+}
+
 }  // namespace bagu::service

@@ -388,6 +388,33 @@ void HttpServer::register_review_routes() {
             });
         });
 
+    // POST /api/review/:id/suspend  body: {"suspended": true|false}
+    svr_.Post(R"(/api/review/(\d+)/suspend)",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            int64_t card_id = 0;
+            try { card_id = std::stoll(req.matches[1].str()); }
+            catch (...) {
+                send_error(res, E::kArgInvalidValue, "invalid card id");
+                return;
+            }
+            bool suspended = true;
+            try {
+                json body = json::parse(req.body.empty() ? "{}" : req.body);
+                if (body.contains("suspended") && body["suspended"].is_boolean()) {
+                    suspended = body["suspended"].get<bool>();
+                }
+            } catch (const json::exception& e) {
+                send_error(res, E::kArgInvalidValue, "invalid JSON body", e.what());
+                return;
+            }
+            auto r = db::ReviewDao(db_).set_suspended(card_id, suspended);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            send_json(res, 200, json{
+                {"card_id", card_id},
+                {"suspended", suspended},
+            });
+        });
+
     // POST /api/review/:id/grade  body: { "score": 4, "duration_ms": 5000 }
     svr_.Post(R"(/api/review/(\d+)/grade)",
         [this](const httplib::Request& req, httplib::Response& res) {
@@ -593,6 +620,30 @@ void HttpServer::register_export_routes() {
             res.set_header("X-Bagu-Export-Written",
                 std::to_string(r.value().written));
             res.set_content(buf.str(), "text/plain; charset=utf-8");
+        });
+
+    svr_.Get("/api/export/csv",
+        [this](const httplib::Request& req, httplib::Response& res) {
+            service::CsvExportOptions opts;
+            opts.topic = req.get_param_value("topic");
+            opts.include_section_cards =
+                req.get_param_value("include_section") == "1";
+
+            std::ostringstream buf;
+            auto r = service::ExportService(db_).export_csv(opts, buf);
+            if (r.is_err()) { send_error(res, r.error()); return; }
+
+            res.status = 200;
+            std::string filename = "bagu";
+            if (!opts.topic.empty()) filename += "-" + opts.topic;
+            filename += ".csv";
+            res.set_header("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"");
+            res.set_header("X-Bagu-Export-Total",
+                std::to_string(r.value().total_cards));
+            res.set_header("X-Bagu-Export-Written",
+                std::to_string(r.value().written));
+            res.set_content(buf.str(), "text/csv; charset=utf-8");
         });
 }
 
