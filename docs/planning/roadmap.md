@@ -1,11 +1,11 @@
 # 产品路线图（Roadmap）
 
 > **状态**：Approved
-> **更新**：2026-05-03（v1.0 已发）
+> **更新**：2026-05-03（v1.1 已发）
 > **下次 review**：2026-07-01
 
-> ✅ **v1.0.0 已发布**（2026-05-03）— Homebrew tap / 192 测试 / 5 平台 CI / 完整用户手册。
-> 接下来重心转向 v1.x 用户体验扩展。
+> ✅ **v1.0.0**（2026-05-03）— Homebrew / CI matrix / 用户手册
+> ✅ **v1.1.0**（2026-05-03 同日）— Anki 导出 / 稳定 card.id / Web 历史 / 多 profile
 
 ---
 
@@ -120,13 +120,18 @@ v1.0                                                            ●
 
 ## Q3 2026 (Jul-Sep)：扩展与生态
 
-### v1.1.0 — 用户体验（目标 2026-07-31）
+### v1.1.0 — 用户体验扩展 ✅ 2026-05-03（提前 ~3 个月）
 
-- 导出 Anki 牌组
+**已交付：**
+- ✅ 导出 Anki 牌组（`bagu export anki` + `/api/export/anki`）
+- ✅ 多 profile 支持（`[llm.profiles.<name>]` + `--profile`）
+- ✅ 稳定 card.id（重导入保留 SM-2 复习历史，schema v4）
+- ✅ Web 面试历史页（`/interview/history` + `/interview/sessions/:id`）
+
+**推迟到 v1.2：**
 - `bagu remind` 系统通知提醒
-- 多 profile 支持（区分场景）
-- 中文分词（cppjieba）
-- 相似题目推荐（embedding）
+- 中文分词（cppjieba，需评估字典体积）
+- 相似题目推荐（embedding，需 vector 存储）
 
 ### v1.2.0 — 协作（目标 2026-08-31）
 

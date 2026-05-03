@@ -9,7 +9,22 @@
 
 ## [Unreleased]
 
-### Added — LLM 多 profile 配置（v1.1）
+（暂无变更）
+
+---
+
+## [1.1.0] - 2026-05-03
+
+**用户体验扩展版**：4 个独立特性，零破坏性变更，完全向后兼容 v1.0.x。
+
+### Highlights
+- 🃏 **Anki 导出**：`bagu export anki [--topic T] [-o file]` + `GET /api/export/anki`
+- 🔑 **稳定 card.id**：重导入 / `--force` 不再丢 SM-2 复习历史（schema v3 → v4，自动 backfill）
+- 📜 **Web 面试历史**：`/interview/history` + `/interview/sessions/:id` 两页
+- 🎛 **多 LLM profile**：`[llm.profiles.<name>]` 段，`bagu interview --profile cheap`
+- 195 单测（v1.0 171 → +24）+ 24 e2e（v1.0 21 → +3）
+
+### Added — LLM 多 profile 配置
 
 #### config.toml 新语法
 ```toml
@@ -507,7 +522,8 @@ C++20 · CMake · SQLite3 + FTS5 · CLI11 · FTXUI · toml++ · libcurl · OpenS
 
 ---
 
-[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/chunluren/bagu-cli/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...v1.0.0
 [0.4.0]: https://github.com/chunluren/bagu-cli/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/chunluren/bagu-cli/compare/v0.2.1...v0.3.0
