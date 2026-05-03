@@ -9,6 +9,43 @@
 
 ## [Unreleased]
 
+### Added — LLM 多 profile 配置（v1.1）
+
+#### config.toml 新语法
+```toml
+[llm]                              # 默认段
+provider = "openai"
+model = "gpt-4o-mini"
+api_key_env = "OPENAI_API_KEY"
+
+[llm.profiles.cheap]               # 用本地 ollama
+provider = "ollama"
+model = "qwen2.5"
+
+[llm.profiles.serious]             # 部分覆盖：只换 model，继承其他
+model = "gpt-4o"
+```
+
+#### 接口
+- CLI：`bagu interview --profile cheap --topic mysql`
+- CLI：`bagu config list-profiles` 列出可用 profile
+- HTTP：`POST /api/interview/sessions` body 接受 `profile` 字段
+- HTTP：`GET /api/llm/profiles` 返回 `{"profiles":["default","cheap",...]}`
+
+#### 优先级
+CLI `--provider`/`--model` > profile 段 > [llm] 默认段。
+profile 段没写的字段从默认段继承。
+
+#### 实现
+- `ConfigOverride` 加 `profile` 字段
+- `load_config` 重写：default → profile → CLI 三级合并；`api_key_env` 也按 profile-优先解析
+- `list_profiles()` 新函数
+- `docs/user-guide/llm-providers.md` 加完整 profile 章节
+
+#### 测试
+- 13 个新单测：默认段加载 / profile 全/部分覆盖 / 优先级 / 不存在 profile / api_key_env 各种路径 / list_profiles
+- 共 195 单测，100% 通过
+
 ### Added — Web 面试历史页（v1.1）
 
 #### 前端

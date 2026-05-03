@@ -90,7 +90,7 @@ int run_interview(const InterviewCliOptions& opts) {
     }
 
     // 3. 加载 LLM 配置
-    auto cfg_r = llm::load_config({opts.provider, opts.model});
+    auto cfg_r = llm::load_config({opts.provider, opts.model, opts.profile});
     if (cfg_r.is_err()) {
         std::cerr << "Error: " << cfg_r.error().message << "\n  "
                   << cfg_r.error().detail << "\n";

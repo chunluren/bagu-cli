@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "bagu/error.h"
+#include "llm/config_loader.h"
 #include "util/path.h"
 
 namespace bagu::cli {
@@ -153,6 +154,23 @@ int run_config_list() {
     if (!cfg) return to_exit_code(static_cast<int>(E::kConfigNotFound));
 
     std::cout << *cfg;
+    return 0;
+}
+
+int run_config_list_profiles() {
+    auto r = llm::list_profiles();
+    if (r.is_err()) {
+        std::cerr << "Error: " << r.error().message << "\n  "
+                  << r.error().detail << "\n";
+        return to_exit_code(r.error().code);
+    }
+    std::cout << "可用 LLM profiles:\n";
+    for (const auto& name : r.value()) {
+        std::cout << "  - " << name;
+        if (name == "default") std::cout << "  (来自 [llm] 段)";
+        std::cout << "\n";
+    }
+    std::cout << "\n用法：bagu interview --profile <name> --topic <T>\n";
     return 0;
 }
 

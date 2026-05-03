@@ -32,6 +32,7 @@ endif()
 if(CURL_FOUND)
     target_sources(bagu_tests PRIVATE
         unit/llm/openai_protocol_test.cpp
+        unit/llm/config_loader_test.cpp
     )
 endif()
 

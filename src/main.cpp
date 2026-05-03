@@ -72,10 +72,12 @@ int main(int argc, char** argv) {
 
     // ===== bagu interview =====
     auto* cmd_interview = app.add_subcommand("interview", "AI 模拟面试");
-    std::string itv_topic, itv_provider, itv_model;
+    std::string itv_topic, itv_provider, itv_model, itv_profile;
     int itv_num = 5;
     cmd_interview->add_option("--topic", itv_topic, "主题")->required();
     cmd_interview->add_option("-n,--num", itv_num, "题数")->capture_default_str();
+    cmd_interview->add_option("--profile", itv_profile,
+        "用 ~/.bagu/config.toml 里的 [llm.profiles.<name>] 段");
     cmd_interview->add_option("--provider", itv_provider,
         "覆盖配置：openai / claude / ollama");
     cmd_interview->add_option("--model", itv_model, "覆盖配置：模型名");
@@ -120,6 +122,8 @@ int main(int argc, char** argv) {
     auto* cmd_config_get = cmd_config->add_subcommand("get", "获取配置");
     auto* cmd_config_set = cmd_config->add_subcommand("set", "设置配置");
     auto* cmd_config_list = cmd_config->add_subcommand("list", "列出全部配置");
+    auto* cmd_config_list_profiles = cmd_config->add_subcommand(
+        "list-profiles", "列出可用的 LLM profiles");
     std::string cfg_get_key, cfg_set_key, cfg_set_value;
     cmd_config_get->add_option("key", cfg_get_key)->required();
     cmd_config_set->add_option("key", cfg_set_key)->required();
@@ -148,6 +152,9 @@ int main(int argc, char** argv) {
         }
         if (cmd_config_list->parsed()) {
             return bagu::cli::run_config_list();
+        }
+        if (cmd_config_list_profiles->parsed()) {
+            return bagu::cli::run_config_list_profiles();
         }
     }
 
@@ -178,6 +185,7 @@ int main(int argc, char** argv) {
         iopts.num = itv_num;
         iopts.provider = itv_provider;
         iopts.model = itv_model;
+        iopts.profile = itv_profile;
         return bagu::cli::run_interview(iopts);
     }
     if (cmd_stats->parsed()) {

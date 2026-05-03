@@ -252,6 +252,7 @@ void register_interview_routes(httplib::Server& svr, db::Database& db) {
             llm::ConfigOverride ovr;
             ovr.provider = body.value("provider", "");
             ovr.model    = body.value("model", "");
+            ovr.profile  = body.value("profile", "");
             auto cfg_r = llm::load_config(ovr);
             if (cfg_r.is_err()) { send_error(res, cfg_r.error()); return; }
             auto& cfg = cfg_r.value();

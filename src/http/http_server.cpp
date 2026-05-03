@@ -16,6 +16,7 @@
 
 #ifdef BAGU_HAVE_CURL
 #include "http/interview_routes.h"
+#include "llm/config_loader.h"
 #endif
 
 namespace bagu::http {
@@ -196,6 +197,18 @@ void HttpServer::register_meta_routes() {
         };
         send_json(res, 200, j);
     });
+
+#ifdef BAGU_HAVE_CURL
+    // LLM 配置文件里有哪些 profile 可用（v1.1+）
+    svr_.Get("/api/llm/profiles",
+        [](const httplib::Request&, httplib::Response& res) {
+            auto r = llm::list_profiles();
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            json arr = json::array();
+            for (const auto& p : r.value()) arr.push_back(p);
+            send_json(res, 200, json{{"profiles", arr}});
+        });
+#endif
 }
 
 // ============================================================================

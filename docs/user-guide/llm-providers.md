@@ -98,6 +98,48 @@ bagu interview --topic mysql --provider ollama --model llama3.2
 bagu interview --topic mysql --model gpt-4o
 ```
 
+## 多 profile（v1.1+）
+
+把不同场景的配置写在 `[llm.profiles.<name>]` 段，命令行用 `--profile` 选：
+
+```toml
+[llm]
+# 默认（不指定 --profile 时用这套）
+provider = "openai"
+model = "gpt-4o-mini"
+api_key_env = "OPENAI_API_KEY"
+
+[llm.profiles.cheap]
+# 日常练习用本地 ollama，零成本
+provider = "ollama"
+model = "qwen2.5"
+# ollama 不需要 key，省略 api_key_env
+
+[llm.profiles.serious]
+# 大模型场面话评分严肃些；继承默认的 provider/api_key_env，只覆盖 model
+model = "gpt-4o"
+
+[llm.profiles.deepseek]
+provider = "openai-compat"
+base_url = "https://api.deepseek.com/v1"
+model = "deepseek-chat"
+api_key_env = "DEEPSEEK_API_KEY"
+```
+
+用法：
+
+```bash
+bagu interview --topic mysql --profile cheap        # ollama / qwen2.5
+bagu interview --topic mysql --profile serious      # OpenAI / gpt-4o
+bagu interview --topic mysql --profile deepseek     # DeepSeek
+
+bagu config list-profiles                            # 列出全部
+```
+
+优先级：CLI `--provider`/`--model` > profile 段 > [llm] 默认段。
+
+profile 段里没写的字段会从 [llm] 默认段继承。
+
 ## 错误码对照
 
 | 错误码 | 含义 | 排查 |

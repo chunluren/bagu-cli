@@ -9,6 +9,7 @@ struct InterviewCliOptions {
     int num = 5;
     std::string provider;     // 覆盖配置
     std::string model;        // 覆盖配置
+    std::string profile;      // [llm.profiles.<name>] 段
 };
 
 int run_interview(const InterviewCliOptions& opts);
