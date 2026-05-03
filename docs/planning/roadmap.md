@@ -7,6 +7,7 @@
 > ✅ **v1.0.0**（2026-05-03）— Homebrew / CI matrix / 用户手册
 > ✅ **v1.1.0**（2026-05-03 同日）— Anki 导出 / 稳定 card.id / Web 历史 / 多 profile
 > ✅ **v1.2.0**（2026-05-03 同日）— 「今日到期」speed view + `bagu remind` 桌面通知
+> ✅ **v1.2.1**（2026-05-03 同日）— CSV 导出 + 卡片 pause/unpause + LAN IP 打印 + 搜索引导 + runbook
 
 ---
 

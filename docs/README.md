@@ -35,6 +35,7 @@
 - [性能基准](./testing/benchmarks.md)
 
 ### 🚀 运维（operations/）
+- **[Runbook — 跑/改/停/测速查](./operations/runbook.md)** ⭐ 维护者快速参考
 - [构建说明](./operations/build.md)
 - [CI/CD 流程](./operations/ci-cd.md)
 - [发布流程](./operations/release.md)

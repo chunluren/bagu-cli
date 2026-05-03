@@ -9,7 +9,24 @@
 
 ## [Unreleased]
 
-### Added — CSV 导出 + 卡片 pause/unpause（v1.2.1）
+（暂无变更）
+
+---
+
+## [1.2.1] - 2026-05-03
+
+**小优化 + 实用工具补完**：4 个独立小特性 + 1 篇运维 runbook。
+
+### Highlights
+- 📤 `bagu export csv` + `GET /api/export/csv` — Notion / Obsidian / Excel 通吃（RFC 4180）
+- ⏸️ `bagu pause` / `bagu unpause` + `POST /api/review/:id/suspend` — 单卡或主题维度
+- 🌐 `bagu serve --bind 0.0.0.0` 自动列出 LAN IP（手机直接复制 URL）
+- 🔍 SearchPage 初始引导（10 个常用关键词标签）
+- 📖 新增 `docs/operations/runbook.md` — 跑/改/停/测一站式查表
+
+206 单测 → 接近 231（含 e2e）。完全向后兼容 v1.2.0。
+
+### Added — CSV 导出 + 卡片 pause/unpause
 
 #### CSV 导出
 - `bagu export csv [--topic T] [-o file]` — RFC 4180 格式，Notion / Obsidian / Excel 通吃
@@ -610,7 +627,8 @@ C++20 · CMake · SQLite3 + FTS5 · CLI11 · FTXUI · toml++ · libcurl · OpenS
 
 ---
 
-[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/chunluren/bagu-cli/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/chunluren/bagu-cli/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/chunluren/bagu-cli/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...v1.0.0
