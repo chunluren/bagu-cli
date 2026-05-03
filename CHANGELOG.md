@@ -9,6 +9,25 @@
 
 ## [Unreleased]
 
+### Added — `bagu remind` 桌面通知（v1.2）
+
+#### 新命令
+- `bagu remind [--topic T] [--threshold N] [--quiet] [--dry-run]`
+- 阈值检测：`total_due + total_new < threshold` → 不发，return 0
+- `--quiet` 不输出 stdout/stderr（适合 cron 不发邮件）
+- `--dry-run` 仅打印通知文案
+
+#### 跨平台
+- `src/util/notify.{h,cpp}` 抽象桌面通知：
+  - Linux：`notify-send --app-name=bagu --icon=accessories-text-editor`
+  - macOS：`osascript -e 'display notification ...'`
+  - Windows：暂未实现，返回 `kNotImplemented`
+- shell 字符串安全转义（single-quote escape）
+- `desktop_notify_available()` 用 `command -v` 检测
+
+#### 文档
+- 新增 `docs/user-guide/remind.md`：cron / systemd user timer / launchd 三套接入方案 + 退出码 + FAQ
+
 ### Added — 「今日到期」速览（v1.2 起步）
 
 #### 后端

@@ -14,6 +14,7 @@
 #include "cli/init_cmd.h"
 #include "cli/interview_cmd.h"
 #include "cli/list_cmd.h"
+#include "cli/remind_cmd.h"
 #include "cli/review_cmd.h"
 #include "cli/search_cmd.h"
 #include "cli/serve_cmd.h"
@@ -107,6 +108,18 @@ int main(int argc, char** argv) {
     auto* cmd_due = app.add_subcommand("due", "今日到期速览");
     std::string due_topic;
     cmd_due->add_option("--topic", due_topic, "限定主题");
+
+    // ===== bagu remind =====
+    auto* cmd_remind = app.add_subcommand("remind",
+        "桌面通知今日到期（适合 cron / systemd timer / launchd）");
+    std::string remind_topic;
+    int remind_threshold = 1;
+    bool remind_quiet = false, remind_dry = false;
+    cmd_remind->add_option("--topic", remind_topic, "限定主题");
+    cmd_remind->add_option("--threshold", remind_threshold,
+        "到期数低于此值不通知")->capture_default_str();
+    cmd_remind->add_flag("--quiet", remind_quiet, "不输出 stdout/stderr");
+    cmd_remind->add_flag("--dry-run", remind_dry, "仅打印不发送");
 
     // ===== bagu export =====
     auto* cmd_export = app.add_subcommand("export",
@@ -213,6 +226,14 @@ int main(int argc, char** argv) {
         bagu::cli::DueCliOptions dopts;
         dopts.topic = due_topic;
         return bagu::cli::run_due(dopts);
+    }
+    if (cmd_remind->parsed()) {
+        bagu::cli::RemindCliOptions ropts;
+        ropts.topic = remind_topic;
+        ropts.threshold = remind_threshold;
+        ropts.quiet = remind_quiet;
+        ropts.dry_run = remind_dry;
+        return bagu::cli::run_remind(ropts);
     }
     if (cmd_export->parsed()) {
         bagu::cli::ExportCliOptions eopts;

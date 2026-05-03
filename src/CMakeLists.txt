@@ -2,6 +2,7 @@
 set(BAGU_LIB_SOURCES
     util/path.cpp
     util/hash.cpp
+    util/notify.cpp
     cli/init_cmd.cpp
     cli/config_cmd.cpp
     parser/markdown_parser.cpp
@@ -43,6 +44,7 @@ if(SQLite3_FOUND)
         cli/serve_cmd.cpp
         cli/export_cmd.cpp
         cli/due_cmd.cpp
+        cli/remind_cmd.cpp
     )
 endif()
 
