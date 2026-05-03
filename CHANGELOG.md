@@ -9,6 +9,24 @@
 
 ## [Unreleased]
 
+（暂无变更）
+
+---
+
+## [1.2.0] - 2026-05-03
+
+**今日复习推送版**：让用户每天「打开就知道该做什么」、「关上电脑也会被提醒」。
+
+### Highlights
+- 📅 **「今日到期」speed view** — `bagu due` CLI / `GET /api/review/due-summary` / Web 首页 hero banner
+- 🔔 **`bagu remind`** — 桌面通知（Linux notify-send / macOS osascript）+ 完整 cron/systemd/launchd 接入文档
+- 🐛 **Fix**：SQL LEFT JOIN 把 0 卡 topic 误算成 1 张新卡 → 加 `c.id IS NOT NULL`
+- 🐛 **Fix**：e2e stats weak-cards 在 strict-mode 下 flaky → 用更具体的文案
+
+测试：199 C++ 单测（v1.1 +4）+ 25 e2e（v1.1 +1）= 224 总。
+
+完全向后兼容 v1.1.x。
+
 ### Added — `bagu remind` 桌面通知（v1.2）
 
 #### 新命令
@@ -566,7 +584,8 @@ C++20 · CMake · SQLite3 + FTS5 · CLI11 · FTXUI · toml++ · libcurl · OpenS
 
 ---
 
-[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/chunluren/bagu-cli/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/chunluren/bagu-cli/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/chunluren/bagu-cli/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chunluren/bagu-cli/compare/v0.4.0...v1.0.0
 [0.4.0]: https://github.com/chunluren/bagu-cli/compare/v0.3.0...v0.4.0

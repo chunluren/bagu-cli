@@ -1,11 +1,12 @@
 # 产品路线图（Roadmap）
 
 > **状态**：Approved
-> **更新**：2026-05-03（v1.1 已发）
+> **更新**：2026-05-03（v1.2 已发）
 > **下次 review**：2026-07-01
 
 > ✅ **v1.0.0**（2026-05-03）— Homebrew / CI matrix / 用户手册
 > ✅ **v1.1.0**（2026-05-03 同日）— Anki 导出 / 稳定 card.id / Web 历史 / 多 profile
+> ✅ **v1.2.0**（2026-05-03 同日）— 「今日到期」speed view + `bagu remind` 桌面通知
 
 ---
 
@@ -128,10 +129,17 @@ v1.0                                                            ●
 - ✅ 稳定 card.id（重导入保留 SM-2 复习历史，schema v4）
 - ✅ Web 面试历史页（`/interview/history` + `/interview/sessions/:id`）
 
-**推迟到 v1.2：**
-- `bagu remind` 系统通知提醒
-- 中文分词（cppjieba，需评估字典体积）
-- 相似题目推荐（embedding，需 vector 存储）
+**推迟到 v1.3+：**
+- 中文分词（cppjieba，需评估字典体积 ~10MB）
+- 相似题目推荐（embedding，需 vector 存储 + LLM API）
+
+---
+
+### v1.2.0 — 今日复习推送 ✅ 2026-05-03
+
+**已交付：**
+- ✅ `bagu due` / `GET /api/review/due-summary` / Web 首页 hero banner
+- ✅ `bagu remind` 桌面通知（Linux/macOS）+ cron/systemd/launchd 文档
 
 ### v1.2.0 — 协作（目标 2026-08-31）
 
