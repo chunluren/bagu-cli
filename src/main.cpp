@@ -8,6 +8,7 @@
 
 #include "bagu/version.h"
 #include "cli/config_cmd.h"
+#include "cli/due_cmd.h"
 #include "cli/export_cmd.h"
 #include "cli/import_cmd.h"
 #include "cli/init_cmd.h"
@@ -101,6 +102,11 @@ int main(int argc, char** argv) {
     cmd_serve->add_option("--port,-p", serve_port, "端口")->capture_default_str();
     cmd_serve->add_option("--token", serve_token, "Bearer 鉴权 token");
     cmd_serve->add_flag("--dev", serve_dev, "开发模式（CORS 放宽）");
+
+    // ===== bagu due =====
+    auto* cmd_due = app.add_subcommand("due", "今日到期速览");
+    std::string due_topic;
+    cmd_due->add_option("--topic", due_topic, "限定主题");
 
     // ===== bagu export =====
     auto* cmd_export = app.add_subcommand("export",
@@ -202,6 +208,11 @@ int main(int argc, char** argv) {
         sopts.token = serve_token;
         sopts.dev = serve_dev;
         return bagu::cli::run_serve(sopts);
+    }
+    if (cmd_due->parsed()) {
+        bagu::cli::DueCliOptions dopts;
+        dopts.topic = due_topic;
+        return bagu::cli::run_due(dopts);
     }
     if (cmd_export->parsed()) {
         bagu::cli::ExportCliOptions eopts;

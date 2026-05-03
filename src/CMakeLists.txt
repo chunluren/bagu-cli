@@ -42,6 +42,7 @@ if(SQLite3_FOUND)
         cli/stats_cmd.cpp
         cli/serve_cmd.cpp
         cli/export_cmd.cpp
+        cli/due_cmd.cpp
     )
 endif()
 

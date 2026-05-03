@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom';
-import { Layers, FileText, BookOpen } from 'lucide-react';
+import { Layers, FileText, BookOpen, Brain, Sparkles } from 'lucide-react';
 
 import { api } from '../api/client';
-import type { Topic } from '../api/types';
+import type { Topic, DueSummary } from '../api/types';
 import { useApi } from '../hooks/useApi';
 
 export function HomePage() {
-  const { data, error, loading } = useApi<Topic[]>(() => api.get('/api/topics'));
+  const topics = useApi<Topic[]>(() => api.get('/api/topics'));
+  const due    = useApi<DueSummary>(() => api.get('/api/review/due-summary'));
 
-  if (loading) return <p className="text-slate-500">加载中...</p>;
-  if (error) {
+  if (topics.loading) return <p className="text-slate-500">加载中...</p>;
+  if (topics.error) {
     return (
       <div className="text-rose-600">
-        <p>加载失败：{error.message}</p>
+        <p>加载失败：{topics.error.message}</p>
         <p className="text-sm text-slate-500 mt-2">
           请确认 <code className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">bagu serve</code>{' '}
           在运行。
@@ -20,7 +21,7 @@ export function HomePage() {
       </div>
     );
   }
-  if (!data || data.length === 0) {
+  if (!topics.data || topics.data.length === 0) {
     return (
       <div className="text-slate-500">
         <p>还没有导入任何主题。</p>
@@ -36,9 +37,64 @@ export function HomePage() {
 
   return (
     <div>
+      {/* 今日到期 banner */}
+      {due.data && (due.data.total_due > 0 || due.data.total_new > 0) ? (
+        <Link
+          to="/review"
+          className="block mb-5 border border-bagu-accent/40 bg-bagu-accent/5 hover:bg-bagu-accent/10 rounded-lg p-4 transition"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Brain size={22} className="text-bagu-accent flex-shrink-0" />
+              <div>
+                <div className="font-semibold">
+                  今日到期{' '}
+                  <span className="text-bagu-accent font-mono">
+                    {due.data.total_due}
+                  </span>{' '}
+                  张
+                  {due.data.total_new > 0 && (
+                    <>
+                      {' '}+{' '}
+                      <span className="text-amber-600 font-mono">
+                        {due.data.total_new}
+                      </span>{' '}
+                      张新卡
+                    </>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {due.data.items
+                    .slice(0, 3)
+                    .map((t) => `${t.topic_name} ${t.due + t.new_cards}`)
+                    .join('  ·  ')}
+                  {due.data.items.length > 3 && '  ·  ...'}
+                </div>
+              </div>
+            </div>
+            <span className="text-sm text-bagu-accent font-medium">
+              开始复习 →
+            </span>
+          </div>
+        </Link>
+      ) : due.data ? (
+        <div className="mb-5 border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 flex items-center gap-3">
+          <Sparkles size={20} className="text-emerald-600 flex-shrink-0" />
+          <div className="text-sm">
+            🎉 今日没有到期卡片。
+            <Link
+              to="/interview"
+              className="text-emerald-700 dark:text-emerald-400 hover:underline ml-2"
+            >
+              试试 AI 面试 →
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
       <h1 className="text-2xl font-semibold mb-4">主题</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {data.map((t) => (
+        {topics.data.map((t) => (
           <Link
             key={t.id}
             to={`/topics/${t.name}`}
@@ -59,8 +115,8 @@ export function HomePage() {
       </div>
       <div className="mt-6 text-xs text-slate-500 flex items-center gap-1.5">
         <BookOpen size={12} />
-        共 {data.length} 个主题，
-        {data.reduce((s, t) => s + (t.cards ?? 0), 0)} 张卡片
+        共 {topics.data.length} 个主题，
+        {topics.data.reduce((s, t) => s + (t.cards ?? 0), 0)} 张卡片
       </div>
     </div>
   );

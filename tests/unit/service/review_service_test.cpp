@@ -135,4 +135,63 @@ TEST_F(ReviewServiceTest, GetDueCards_RespectsTopicFilter) {
     }
 }
 
+// ===== due_summary =====
+
+TEST_F(ReviewServiceTest, DueSummary_AllNewWhenNoReviews) {
+    auto r = svc_->due_summary();
+    ASSERT_TRUE(r.is_ok());
+    auto& s = r.value();
+    EXPECT_EQ(s.total_due, 0);
+    EXPECT_EQ(s.total_new, 3);   // SetUp 创建 3 张 mysql 卡
+    ASSERT_EQ(s.per_topic.size(), 1u);
+    EXPECT_EQ(s.per_topic[0].topic_name, "mysql");
+    EXPECT_EQ(s.per_topic[0].new_cards, 3);
+    EXPECT_EQ(s.per_topic[0].due, 0);
+}
+
+TEST_F(ReviewServiceTest, DueSummary_AfterReview_CountsDue) {
+    // 第 1 张：复习 5 分（隔 1 天）→ 不到期
+    svc_->submit_review(card_ids_[0], 5, 0);
+    // 第 2 张：复习 + 手工把 next_review 改成过去 → 到期
+    svc_->submit_review(card_ids_[1], 4, 0);
+    {
+        auto u = db_->prepare("UPDATE review SET next_review = 1 WHERE card_id = ?");
+        u.bind(1, card_ids_[1]);
+        ASSERT_GE(u.execute(), 0);
+    }
+    // 第 3 张：保持新卡
+
+    auto r = svc_->due_summary();
+    ASSERT_TRUE(r.is_ok());
+    auto& s = r.value();
+    EXPECT_EQ(s.total_due, 1);
+    EXPECT_EQ(s.total_new, 1);
+}
+
+TEST_F(ReviewServiceTest, DueSummary_SkipsTopicsWithNoCards) {
+    db::TopicDao tdao(*db_);
+    db::Topic t;
+    t.name = "empty"; t.title = "E"; t.file_path = "/p"; t.file_hash = "h3";
+    t.imported_at = 0; t.updated_at = 0;
+    tdao.insert(t);
+
+    auto r = svc_->due_summary();
+    ASSERT_TRUE(r.is_ok());
+    for (const auto& tp : r.value().per_topic) {
+        EXPECT_NE(tp.topic_name, "empty");
+    }
+}
+
+TEST_F(ReviewServiceTest, DueSummary_RespectsSuspendedFlag) {
+    svc_->submit_review(card_ids_[0], 4, 0);
+    auto u = db_->prepare(
+        "UPDATE review SET next_review = 1, suspended = 1 WHERE card_id = ?");
+    u.bind(1, card_ids_[0]);
+    ASSERT_GE(u.execute(), 0);
+
+    auto r = svc_->due_summary();
+    ASSERT_TRUE(r.is_ok());
+    EXPECT_EQ(r.value().total_due, 0);
+}
+
 }  // namespace bagu::service

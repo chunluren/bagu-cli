@@ -85,6 +85,21 @@ export interface DueResponse {
   cards: DueCard[];
 }
 
+export interface DueByTopicSummary {
+  topic_id: number;
+  topic_name: string;
+  topic_title: string;
+  due: number;
+  new_cards: number;
+}
+
+export interface DueSummary {
+  generated_at: number;
+  total_due: number;
+  total_new: number;
+  items: DueByTopicSummary[];
+}
+
 // ===== 面试 =====
 
 export interface InterviewSession {

@@ -31,7 +31,9 @@ test.describe('Stats page', () => {
 
   test('weak cards section renders empty-state', async ({ page }) => {
     await page.goto('/stats');
-    // 0 复习历史 → "没有薄弱卡片" 提示
-    await expect(page.getByText(/没有薄弱卡片|薄弱卡片/)).toBeVisible();
+    // 0 复习历史 → "没有薄弱卡片" 文案存在（heading 标题也叫薄弱卡片，所以用 .first()）
+    await expect(
+      page.getByText(/没有薄弱卡片，太棒了/)
+    ).toBeVisible();
   });
 });

@@ -19,6 +19,15 @@ test.describe('Home page', () => {
     // （HomePage 在 0 主题时显示一个引导文案；即使接口返回 [] 页面也能渲染）
     await expect(page.locator('body')).not.toContainText('Error');
   });
+
+  test('due-summary endpoint returns shape even on empty DB', async ({ request }) => {
+    const r = await request.get('/api/review/due-summary');
+    expect(r.ok()).toBeTruthy();
+    const j = await r.json();
+    expect(j.total_due).toBe(0);
+    expect(j.total_new).toBe(0);
+    expect(Array.isArray(j.items)).toBe(true);
+  });
 });
 
 test.describe('Health API', () => {

@@ -14,6 +14,23 @@ struct ReviewPlan {
     int max_new = 5;              // 每天新学几张
 };
 
+/// 主题维度的到期摘要
+struct DueByTopic {
+    int64_t topic_id = 0;
+    std::string topic_name;
+    std::string topic_title;
+    int due = 0;        // 已到期（next_review <= now）
+    int new_cards = 0;   // 从未复习过
+};
+
+/// 全局到期摘要（首页 / `bagu due` 用）
+struct DueSummary {
+    int64_t generated_at = 0;       // unix ts
+    int total_due = 0;
+    int total_new = 0;
+    std::vector<DueByTopic> per_topic;
+};
+
 /// 复习服务：编排 SM-2 算法 + ReviewDao
 class ReviewService {
 public:
@@ -29,6 +46,10 @@ public:
     /// @return 更新后的 ReviewRow（包含 next_review 等供 UI 显示）
     Result<db::ReviewRow> submit_review(int64_t card_id, int score,
                                         int duration_ms);
+
+    /// 全局到期摘要：每个 topic 的到期数 + 新卡数
+    /// 用于首页 banner / `bagu due` / 桌面通知
+    Result<DueSummary> due_summary();
 
 private:
     db::Database& db_;

@@ -355,6 +355,30 @@ void HttpServer::register_review_routes() {
             });
         });
 
+    // GET /api/review/due-summary — 各主题到期/新卡数 + 总数
+    svr_.Get("/api/review/due-summary",
+        [this](const httplib::Request&, httplib::Response& res) {
+            auto r = service::ReviewService(db_).due_summary();
+            if (r.is_err()) { send_error(res, r.error()); return; }
+            const auto& s = r.value();
+            json items = json::array();
+            for (const auto& t : s.per_topic) {
+                items.push_back({
+                    {"topic_id", t.topic_id},
+                    {"topic_name", t.topic_name},
+                    {"topic_title", t.topic_title},
+                    {"due", t.due},
+                    {"new_cards", t.new_cards},
+                });
+            }
+            send_json(res, 200, json{
+                {"generated_at", s.generated_at},
+                {"total_due", s.total_due},
+                {"total_new", s.total_new},
+                {"items", items},
+            });
+        });
+
     // POST /api/review/:id/grade  body: { "score": 4, "duration_ms": 5000 }
     svr_.Post(R"(/api/review/(\d+)/grade)",
         [this](const httplib::Request& req, httplib::Response& res) {

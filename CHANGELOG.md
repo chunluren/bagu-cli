@@ -9,7 +9,32 @@
 
 ## [Unreleased]
 
-（暂无变更）
+### Added — 「今日到期」速览（v1.2 起步）
+
+#### 后端
+- `service::ReviewService::due_summary()` — 各主题的到期数 + 新卡数 + 全局合计
+- 单条 SQL：`topic LEFT JOIN card LEFT JOIN review` 按 topic 聚合
+  - 修了一个易踩的 LEFT JOIN 坑：空 topic 会被算成 1 张新卡（NULL 行），加 `c.id IS NOT NULL` 过滤
+  - 跳过 0 卡片的 topic（如 readme.md）
+- 4 个新单测：空 DB / 复习后 due 计数 / 跳过空 topic / 尊重 suspended 标记
+
+#### CLI
+- 新命令 `bagu due [--topic T]`：彩色输出今日到期 + 各主题分布 + 下一步提示
+- TTY 检测（非交互/重定向时关闭 ANSI 颜色）
+
+#### HTTP
+- `GET /api/review/due-summary` — 同前端结构
+
+#### Web
+- 首页顶部加「今日到期 N 张」hero banner（点击跳 `/review`）
+- 0 到期时显示「🎉 今日没有到期卡片」+ AI 面试 CTA
+- 显示前 3 个主题的题目分布速览
+- e2e 加 due-summary 接口形状校验
+
+#### 修复 e2e flaky
+- `stats.spec.ts` 的 weak-cards 空态用更具体的文案（"没有薄弱卡片，太棒了"）避免与 section heading 冲突
+
+199 单测 + 25 e2e 全通过。
 
 ---
 
